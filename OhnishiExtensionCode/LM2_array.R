@@ -225,11 +225,11 @@ for(s in 2:mcmc_samples){
     G_a_long_temp[(G_long_temp == 3) | ((G_long_temp == 4) & (a_long >= h0[[s-1]])) | ((G_long_temp == 5) & (a_long < l0[[s-1]])) | ((G_long_temp == 6) & (a_long >= h1[[s-1]]) & (a_long < l1[[s-1]]))] <- 3
     
     mu <- rep(NA, times = sum(N))
-    var <- rep(NA,times = sum(N))
+    var <- rep(NA, times = sum(N))
     
     for(j in 1:sum(N)) {
-      mu[j] <- W[j,]%*%beta[[s]][G_a_long_temp[j],]
-      var[j] <- sigma2[[s]][G_a_long_temp[j]]
+      mu[j] <- W[j,]%*%beta[[s]][G_long_temp[j],]
+      var[j] <- sigma2[[s]][G_long_temp[j]]
     }
     
     num[,k] <- dnorm(x = Y_long, mean = mu, sd = sqrt(var), log = TRUE)
@@ -319,16 +319,8 @@ for(s in 2:mcmc_samples){
   ###
   logit_h0_old <- logit_h0
   G_a_long_old <- G_a_long
-  mu_old <- sapply(1:sum(N), 
-                 function(j){
-                   W[j,]%*%beta[[s]][G_long[j],]
-                 })
-  
-  var_old <- sigma2[[s]][G_a_long_old]
-  denom <- dnorm(x = Y_long,
-               mean = mu_old,
-               sd = sqrt(var_old),
-               log = TRUE) +
+
+  denom <- 
     log(as.numeric((D_long == 1 & G_a_long_old == 1) | (D_long == 0 & G_a_long_old == 2) | (D_long == Z_long & G_a_long_old == 3))) +
     dnorm(x = logit_h0_old,
           mean = (v_long%*%delta_h0[[s-1]]),
@@ -340,12 +332,8 @@ for(s in 2:mcmc_samples){
   G_a_long[(G_long == 1) | ((G_long == 5) & (a_long >= l0[[s-1]])) | ((G_long == 6) & (a_long >= l1[[s-1]]))] <- 1
   G_a_long[(G_long == 2) | ((G_long == 4) & (a_long < h0[[s]])) | ((G_long == 6) & (a_long < h1[[s-1]]))] <- 2
   G_a_long[(G_long == 3) | ((G_long == 4) & (a_long >= h0[[s]])) | ((G_long == 5) & (a_long < l0[[s-1]])) | ((G_long == 6) & (a_long >= h1[[s-1]]) & (a_long < l1[[s-1]]))] <- 3
-  mu <- sapply(1:sum(N), 
-             function(j){
-               W[j,]%*%beta[[s]][G_long[j],]
-             })
-  var <- sigma2[[s]][G_a_long]
-  numer <- dnorm(x = Y_long, mean = mu, sd = sqrt(var), log = TRUE) +
+
+  numer <- 
     log(as.numeric((D_long == 1 & G_a_long == 1) | (D_long == 0 & G_a_long == 2) | (D_long == Z_long & G_a_long == 3))) +
     dnorm(x = logit_h0, mean = (v_long%*%delta_h0[[s-1]]),
           sd = sqrt(tau2_h0[[s-1]]),
@@ -368,13 +356,8 @@ for(s in 2:mcmc_samples){
   ###
   logit_l0_old <- logit_l0
   G_a_long_old <- G_a_long
-  mu_old <- sapply(1:sum(N), 
-                 function(j){
-                   W[j,]%*%beta[[s]][G_long[j],]
-                 })
-  
-  var_old <- sigma2[[s]][G_a_long_old]
-  denom <- dnorm(x = Y_long, mean = mu_old, sd = sqrt(var_old), log = TRUE) +
+
+  denom <- 
     log(as.numeric((D_long == 1 & G_a_long_old == 1) | (D_long == 0 & G_a_long_old == 2) | (D_long == Z_long & G_a_long_old == 3))) +
     dnorm(x = logit_l0_old,
           mean = (v_long%*%delta_l0[[s-1]]),
@@ -386,12 +369,8 @@ for(s in 2:mcmc_samples){
   G_a_long[(G_long == 1) | ((G_long == 5) & (a_long >= l0[[s]])) | ((G_long == 6) & (a_long >= l1[[s-1]]))] <- 1
   G_a_long[(G_long == 2) | ((G_long == 4) & (a_long < h0[[s]])) | ((G_long == 6) & (a_long < h1[[s-1]]))] <- 2
   G_a_long[(G_long == 3) | ((G_long == 4) & (a_long >= h0[[s]])) | ((G_long == 5) & (a_long < l0[[s]])) | ((G_long == 6) & (a_long >= h1[[s-1]]) & (a_long < l1[[s-1]]))] <- 3
-  mu<-sapply(1:sum(N), 
-             function(j){
-               W[j,]%*%beta[[s]][G_long[j],]
-             })
-  var<-sigma2[[s]][G_a_long]
-  numer<-dnorm(x = Y_long, mean = mu, sd = sqrt(var), log = TRUE) +
+
+  numer<-
     log(as.numeric((D_long == 1 & G_a_long == 1) | (D_long == 0 & G_a_long == 2) | (D_long == Z_long & G_a_long == 3))) +
     dnorm(x = logit_l0,
           mean = (v_long%*%delta_l0[[s-1]]),
@@ -414,13 +393,8 @@ for(s in 2:mcmc_samples){
   ###
   logit_h1_old <- logit_h1
   G_a_long_old <- G_a_long
-  mu_old <- sapply(1:sum(N), 
-                 function(j){
-                   W[j,]%*%beta[[s]][G_long[j],]
-                 })
-  
-  var_old <- sigma2[[s]][G_a_long_old]
-  denom <- dnorm(x = Y_long, mean = mu_old, sd = sqrt(var_old), log = TRUE) +
+
+  denom <- 
     log(as.numeric((D_long == 1 & G_a_long_old == 1) | (D_long == 0 & G_a_long_old == 2) | (D_long == Z_long & G_a_long_old == 3))) +
     dnorm(x = logit_h1_old,
           mean = (v_long%*%delta_h1[[s-1]]),
@@ -432,12 +406,8 @@ for(s in 2:mcmc_samples){
   G_a_long[(G_long == 1) | ((G_long == 5) & (a_long >= l0[[s]])) | ((G_long == 6) & (a_long >= l1[[s-1]]))] <- 1
   G_a_long[(G_long == 2) | ((G_long == 4) & (a_long < h0[[s]])) | ((G_long == 6) & (a_long < h1[[s]]))] <- 2
   G_a_long[(G_long == 3) | ((G_long == 4) & (a_long >= h0[[s]])) | ((G_long == 5) & (a_long < l0[[s]])) | ((G_long == 6) & (a_long >= h1[[s]]) & (a_long < l1[[s-1]]))] <- 3
-  mu <- sapply(1:sum(N), 
-             function(j){
-               W[j,]%*%beta[[s]][G_long[j],]
-             })
-  var <- sigma2[[s]][G_a_long]
-  numer <- dnorm(x = Y_long, mean = mu, sd = sqrt(var), log = TRUE) +
+
+  numer <- 
     log(as.numeric((D_long == 1 & G_a_long == 1) | (D_long == 0 & G_a_long == 2) | (D_long == Z_long & G_a_long == 3))) +
     dnorm(x = logit_h1,
           mean = (v_long%*%delta_h1[[s-1]]),
@@ -460,13 +430,8 @@ for(s in 2:mcmc_samples){
   ###
   logit_l1_old <- logit_l1
   G_a_long_old <- G_a_long
-  mu_old <- sapply(1:sum(N), 
-                 function(j){
-                   W[j,]%*%beta[[s]][G_long[j],]
-                 })
-  
-  var_old <- sigma2[[s]][G_a_long_old]
-  denom <- dnorm(x = Y_long, mean = mu_old, sd = sqrt(var_old), log = TRUE) +
+
+  denom <- 
     log(as.numeric((D_long == 1 & G_a_long_old == 1) | (D_long == 0 & G_a_long_old == 2) | (D_long == Z_long & G_a_long_old == 3))) +
     dnorm(x = logit_l1_old,
           mean = (v_long%*%delta_l1[[s-1]]),
@@ -478,12 +443,8 @@ for(s in 2:mcmc_samples){
   G_a_long[(G_long == 1) | ((G_long == 5) & (a_long >= l0[[s]])) | ((G_long == 6) & (a_long >= l1[[s]]))] <- 1
   G_a_long[(G_long == 2) | ((G_long == 4) & (a_long < h0[[s]])) | ((G_long == 6) & (a_long < h1[[s]]))] <- 2
   G_a_long[(G_long == 3) | ((G_long == 4) & (a_long >= h0[[s]])) | ((G_long == 5) & (a_long < l0[[s]])) | ((G_long == 6) & (a_long >= h1[[s]]) & (a_long < l1[[s]]))] <- 3
-  mu <- sapply(1:sum(N), 
-             function(j){
-               W[j,]%*%beta[[s]][G_long[j],]
-             })
-  var <- sigma2[[s]][G_a_long]
-  numer <- dnorm(x = Y_long, mean = mu, sd = sqrt(var), log = TRUE) +
+
+  numer <- 
     log(as.numeric((D_long == 1 & G_a_long == 1) | (D_long == 0 & G_a_long == 2) | (D_long == Z_long & G_a_long == 3))) +
     dnorm(x = logit_l1,
           mean = (v_long%*%delta_l1[[s-1]]),
