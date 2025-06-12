@@ -3,19 +3,9 @@
 ###############
 library(mnormt)
 library(matrixStats)
-args <- commandArgs(trailingOnly = TRUE)
-id <- as.integer(args[1])
-print(id)
-J <- as.integer(args[2])
-print(J)
-Nj <- as.integer(args[3])
-print(Nj)
-nalpha <- as.integer(args[4])
-print(nalpha)
-v <- paste0("LM2_N", J*Nj)
-#v <- "LM_5.5_nospace"
+v <- paste0("LM_5.8_data_lte")
 print(v)
-source("~/OhnishiExtensionCode/Data_Simulation_LM2.R")
+source("~/project/OhnishiExtension/Data/format_data3.R")
 
 #########
 #Function
@@ -31,13 +21,13 @@ logSumExp<-function(x){
 ##############
 #Seed
 ##############
-set.seed(id)
+set.seed(1222)
 
 ################
 #Global Settings
 ################
 mcmc_samples<-10000
-burnin <- 5000
+burnin <- 8000
 thin <- 10
 iters <- burnin:mcmc_samples
 iters <- iters[seq(1, mcmc_samples-burnin + thin, thin)]
@@ -56,16 +46,18 @@ shape_tau2_update<-sum(N)/2.00 +
 ###########
 #Parameters
 ###########
-beta <- matrix(NA, nrow=6, ncol=5)
+nx <- ncol(q_long)
+np <- ncol(W)
+beta <- matrix(NA, nrow=3, ncol=np)
 beta <- list(beta)[rep(1,mcmc_samples)]
 
-sigma2 <- rep(NA, 6)
+sigma2 <- rep(NA, 3)
 sigma2 <- list(sigma2)[rep(1,mcmc_samples)]
 
-G <- matrix(NA, nrow=J, ncol=Nj)
+G <- rep(NA, sum(N))
 G <- list(G)[rep(1,mcmc_samples)]
 
-alpha <- matrix(NA, nrow=2, ncol=5)
+alpha <- matrix(NA, nrow=nx, ncol=5)
 alpha <- list(alpha)[rep(1,mcmc_samples)]
 
 h0 <- l0 <- h1 <- l1 <- rep(NA, sum(N))
@@ -74,7 +66,7 @@ l0 <- list(l0)[rep(1,mcmc_samples)]
 h1 <- list(h1)[rep(1,mcmc_samples)]
 l1 <- list(l1)[rep(1,mcmc_samples)]
 
-delta_h0 <- delta_l0 <- delta_h1 <- delta_l1 <- rep(NA, 2)
+delta_h0 <- delta_l0 <- delta_h1 <- delta_l1 <- rep(NA, nv)
 delta_h0 <- list(delta_h0)[rep(1,mcmc_samples)]
 delta_l0 <- list(delta_l0)[rep(1,mcmc_samples)]
 delta_h1 <- list(delta_h1)[rep(1,mcmc_samples)]
@@ -92,17 +84,17 @@ CASE<-rep(NA, mcmc_samples)
 ###############
 #Initial Values
 ###############
-for(k in 1:6){
-  beta[[1]][k,]<- rep(0.00, 5)
+for(k in 1:3){
+  beta[[1]][k,]<- rep(0.00, np)
 }
 
-sigma2[[1]] <- rep(1.00, 6)
+sigma2[[1]] <- rep(1.00, 3)
 
 log_pi_mat_temp <- matrix(NA, nrow = sum(N), ncol = 6)
 log_pi_mat_temp[,6] <- rep(0.00, sum(N))
 
 for(k in 1:5){
-  alpha[[1]][,k] <- rep(0.00, 2)
+  alpha[[1]][,k] <- rep(0.00, nx)
   log_pi_mat_temp[,k] <- q_long%*%alpha[[1]][,k]
 }
 log_pi_mat <- pi_mat<-matrix(NA, nrow = sum(N), ncol = 6)
@@ -113,56 +105,48 @@ for(k in 1:6){
   pi_mat[,k] <- 1.00/rowSums(exp(log_pi_mat_temp - log_pi_mat_temp[,k]))
 }
 
-for(j in 1:J){
-  for(i in 1:N[j]){
-    
-    if(Z[[j]][i] == 1 & D[[j]][i] == 1){
-      G[[1]][j, i] <- sample(c(1, 3, 4, 5, 6), size = 1, replace = TRUE)
+for(i in 1:sum(N)){
+    if(Z_long[i] == 1 & D_long[i] == 1){
+      G[[1]][i] <- sample(c(1, 3, 4, 5, 6), size = 1, replace = TRUE)
     }
     
-    if(Z[[j]][i] == 1 & D[[j]][i] == 0){
-      G[[1]][j, i] <- sample(c(2, 4, 6), size = 1, replace = TRUE)
+    if(Z_long[i] == 1 & D_long[i] == 0){
+      G[[1]][i] <- sample(c(2, 4, 6), size = 1, replace = TRUE)
     }
     
-    if(Z[[j]][i] == 0 & D[[j]][i] == 1){
-      G[[1]][j, i]<-sample(c(1, 5, 6), size = 1, replace = TRUE)
+    if(Z_long[i] == 0 & D_long[i] == 1){
+      G[[1]][i]<-sample(c(1, 5, 6), size = 1, replace = TRUE)
     }
     
-    if(Z[[j]][i] == 0 & D[[j]][i] == 0){
-      G[[1]][j, i]<-sample(c(2, 3, 5, 6), size = 1, replace = TRUE)
+    if(Z_long[i] == 0 & D_long[i] == 0){
+      G[[1]][i]<-sample(c(2, 3, 5, 6), size = 1, replace = TRUE)
     }
-    
-  }
 }
 
-G_long<-G[[1]][1,]
-for(j in 2:J){
-  G_long <- c(G_long,
-              G[[1]][j,])
-}
+G_long<-G[[1]]
 
-delta_h0[[1]] <- rep(0.00, 2)
+delta_h0[[1]] <- rep(0.00, nv)
 tau2_h0[[1]] <- 0.01
 logit_h0 <- rnorm(n = sum(N),
                   mean = (v_long%*%delta_h0[[1]]),
                   sd = sqrt(tau2_h0[[1]]))
 h0[[1]] <- 1.00/(1.00 + exp(-logit_h0))
 
-delta_l0[[1]] <- rep(0.00, 2)
+delta_l0[[1]] <- rep(0.00, nv)
 tau2_l0[[1]] <- 0.01
 logit_l0 <- rnorm(n = sum(N),
                   mean = (v_long%*%delta_l0[[1]]),
                   sd = sqrt(tau2_l0[[1]]))
 l0[[1]] <- 1.00/(1.00 + exp(-logit_l0))
 
-delta_h1[[1]] <- rep(0.00, 2)
+delta_h1[[1]] <- rep(0.00, nv)
 tau2_h1[[1]] <- 0.01
 logit_h1 <- rnorm(n = sum(N),
                   mean = (v_long%*%delta_h1[[1]]),
                   sd = sqrt(tau2_h1[[1]]))
 h1[[1]] <- 1.00/(1.00 + exp(-logit_h1))
 
-delta_l1[[1]] <- rep(0.00, 2)
+delta_l1[[1]] <- rep(0.00, nv)
 tau2_l1[[1]] <- 0.01
 logit_l1 <- rnorm(n = sum(N),
                   mean = (v_long%*%delta_l1[[1]]),
@@ -177,8 +161,8 @@ G_a_long[(G_long == 3) | ((G_long == 4) & (a_long >= h0[[1]])) | ((G_long == 5) 
 ####################
 #Metropolis Settings
 ####################
-metrop_sd_alpha <- matrix(0.50, nrow = 5, ncol = 2)
-acctot_alpha <- matrix(1, nrow = 5, ncol = 2)
+metrop_sd_alpha <- matrix(0.50, nrow = 5, ncol = nx)
+acctot_alpha <- matrix(1, nrow = 5, ncol = nx)
 
 metrop_sd_h0 <- rep(1.00, times = sum(N))
 acctot_h0 <- rep(1, times = sum(N))
@@ -200,10 +184,10 @@ for(s in 2:mcmc_samples){
   #############
   #beta, sigma2
   #############
-  for(k in 1:6){
-    Y_k <- Y_long[G_long == k]
-    W_k <- W[(G_long == k),,drop=FALSE]
-    cov_beta <- chol2inv(chol(crossprod(W_k)/sigma2[[s-1]][k] + diag(5)/sigma2_beta))
+  for(k in 1:3){
+    Y_k <- Y_long[G_a_long == k]
+    W_k <- W[(G_a_long == k),]
+    cov_beta <- chol2inv(chol(crossprod(W_k)/sigma2[[s-1]][k] + diag(np)/sigma2_beta))
     mu_beta <- cov_beta%*%(crossprod(W_k, Y_k))/sigma2[[s-1]][k]
     beta[[s]][k,] <- rmnorm(n = 1, mean = mu_beta, varcov = cov_beta)
     
@@ -225,11 +209,11 @@ for(s in 2:mcmc_samples){
     G_a_long_temp[(G_long_temp == 3) | ((G_long_temp == 4) & (a_long >= h0[[s-1]])) | ((G_long_temp == 5) & (a_long < l0[[s-1]])) | ((G_long_temp == 6) & (a_long >= h1[[s-1]]) & (a_long < l1[[s-1]]))] <- 3
     
     mu <- rep(NA, times = sum(N))
-    var <- rep(NA, times = sum(N))
+    var <- rep(NA,times = sum(N))
     
     for(j in 1:sum(N)) {
-      mu[j] <- W[j,]%*%beta[[s]][G_long_temp[j],]
-      var[j] <- sigma2[[s]][G_long_temp[j]]
+      mu[j] <- W[j,]%*%beta[[s]][G_a_long_temp[j],]
+      var[j] <- sigma2[[s]][G_a_long_temp[j]]
     }
     
     num[,k] <- dnorm(x = Y_long, mean = mu, sd = sqrt(var), log = TRUE)
@@ -260,17 +244,14 @@ for(s in 2:mcmc_samples){
   G_a_long[(G_long == 2) | ((G_long == 4) & (a_long < h0[[s-1]])) | ((G_long == 6) & (a_long < h1[[s-1]]))] <- 2
   G_a_long[(G_long == 3) | ((G_long == 4) & (a_long >= h0[[s-1]])) | ((G_long == 5) & (a_long < l0[[s-1]])) | ((G_long == 6) & (a_long >= h1[[s-1]]) & (a_long < l1[[s-1]]))] <- 3
   
-  G[[s]][1,]<-G_long[1:N[1]]
-  for(j in 2:J){
-    G[[s]][j,]<-G_long[(1 + sum(N[1:(j-1)])):sum(N[1:j])]
-  }
+  G[[s]]<-G_long
   
   ######
   #alpha
   ######
   for(k in 1:5) {
     alpha[[s]][,k] <- alpha[[s-1]][,k]
-    for(l in 1:2) {
+    for(l in 1:nx) {
       log_pi_mat_temp_old <- log_pi_mat_temp
       log_pi_mat_old <- log_pi_mat
       pi_mat_old <- pi_mat
@@ -319,8 +300,16 @@ for(s in 2:mcmc_samples){
   ###
   logit_h0_old <- logit_h0
   G_a_long_old <- G_a_long
-
-  denom <- 
+  mu_old <- sapply(1:sum(N), 
+                 function(j){
+                   W[j,]%*%beta[[s]][G_a_long_old[j],]
+                 })
+  
+  var_old <- sigma2[[s]][G_a_long_old]
+  denom <- dnorm(x = Y_long,
+               mean = mu_old,
+               sd = sqrt(var_old),
+               log = TRUE) +
     log(as.numeric((D_long == 1 & G_a_long_old == 1) | (D_long == 0 & G_a_long_old == 2) | (D_long == Z_long & G_a_long_old == 3))) +
     dnorm(x = logit_h0_old,
           mean = (v_long%*%delta_h0[[s-1]]),
@@ -332,8 +321,12 @@ for(s in 2:mcmc_samples){
   G_a_long[(G_long == 1) | ((G_long == 5) & (a_long >= l0[[s-1]])) | ((G_long == 6) & (a_long >= l1[[s-1]]))] <- 1
   G_a_long[(G_long == 2) | ((G_long == 4) & (a_long < h0[[s]])) | ((G_long == 6) & (a_long < h1[[s-1]]))] <- 2
   G_a_long[(G_long == 3) | ((G_long == 4) & (a_long >= h0[[s]])) | ((G_long == 5) & (a_long < l0[[s-1]])) | ((G_long == 6) & (a_long >= h1[[s-1]]) & (a_long < l1[[s-1]]))] <- 3
-
-  numer <- 
+  mu <- sapply(1:sum(N), 
+             function(j){
+               W[j,]%*%beta[[s]][G_a_long[j],]
+             })
+  var <- sigma2[[s]][G_a_long]
+  numer <- dnorm(x = Y_long, mean = mu, sd = sqrt(var), log = TRUE) +
     log(as.numeric((D_long == 1 & G_a_long == 1) | (D_long == 0 & G_a_long == 2) | (D_long == Z_long & G_a_long == 3))) +
     dnorm(x = logit_h0, mean = (v_long%*%delta_h0[[s-1]]),
           sd = sqrt(tau2_h0[[s-1]]),
@@ -356,8 +349,13 @@ for(s in 2:mcmc_samples){
   ###
   logit_l0_old <- logit_l0
   G_a_long_old <- G_a_long
-
-  denom <- 
+  mu_old <- sapply(1:sum(N), 
+                 function(j){
+                   W[j,]%*%beta[[s]][G_a_long_old[j],]
+                 })
+  
+  var_old <- sigma2[[s]][G_a_long_old]
+  denom <- dnorm(x = Y_long, mean = mu_old, sd = sqrt(var_old), log = TRUE) +
     log(as.numeric((D_long == 1 & G_a_long_old == 1) | (D_long == 0 & G_a_long_old == 2) | (D_long == Z_long & G_a_long_old == 3))) +
     dnorm(x = logit_l0_old,
           mean = (v_long%*%delta_l0[[s-1]]),
@@ -369,8 +367,12 @@ for(s in 2:mcmc_samples){
   G_a_long[(G_long == 1) | ((G_long == 5) & (a_long >= l0[[s]])) | ((G_long == 6) & (a_long >= l1[[s-1]]))] <- 1
   G_a_long[(G_long == 2) | ((G_long == 4) & (a_long < h0[[s]])) | ((G_long == 6) & (a_long < h1[[s-1]]))] <- 2
   G_a_long[(G_long == 3) | ((G_long == 4) & (a_long >= h0[[s]])) | ((G_long == 5) & (a_long < l0[[s]])) | ((G_long == 6) & (a_long >= h1[[s-1]]) & (a_long < l1[[s-1]]))] <- 3
-
-  numer<-
+  mu<-sapply(1:sum(N), 
+             function(j){
+               W[j,]%*%beta[[s]][G_a_long[j],]
+             })
+  var<-sigma2[[s]][G_a_long]
+  numer<-dnorm(x = Y_long, mean = mu, sd = sqrt(var), log = TRUE) +
     log(as.numeric((D_long == 1 & G_a_long == 1) | (D_long == 0 & G_a_long == 2) | (D_long == Z_long & G_a_long == 3))) +
     dnorm(x = logit_l0,
           mean = (v_long%*%delta_l0[[s-1]]),
@@ -393,8 +395,13 @@ for(s in 2:mcmc_samples){
   ###
   logit_h1_old <- logit_h1
   G_a_long_old <- G_a_long
-
-  denom <- 
+  mu_old <- sapply(1:sum(N), 
+                 function(j){
+                   W[j,]%*%beta[[s]][G_a_long_old[j],]
+                 })
+  
+  var_old <- sigma2[[s]][G_a_long_old]
+  denom <- dnorm(x = Y_long, mean = mu_old, sd = sqrt(var_old), log = TRUE) +
     log(as.numeric((D_long == 1 & G_a_long_old == 1) | (D_long == 0 & G_a_long_old == 2) | (D_long == Z_long & G_a_long_old == 3))) +
     dnorm(x = logit_h1_old,
           mean = (v_long%*%delta_h1[[s-1]]),
@@ -406,8 +413,12 @@ for(s in 2:mcmc_samples){
   G_a_long[(G_long == 1) | ((G_long == 5) & (a_long >= l0[[s]])) | ((G_long == 6) & (a_long >= l1[[s-1]]))] <- 1
   G_a_long[(G_long == 2) | ((G_long == 4) & (a_long < h0[[s]])) | ((G_long == 6) & (a_long < h1[[s]]))] <- 2
   G_a_long[(G_long == 3) | ((G_long == 4) & (a_long >= h0[[s]])) | ((G_long == 5) & (a_long < l0[[s]])) | ((G_long == 6) & (a_long >= h1[[s]]) & (a_long < l1[[s-1]]))] <- 3
-
-  numer <- 
+  mu <- sapply(1:sum(N), 
+             function(j){
+               W[j,]%*%beta[[s]][G_a_long[j],]
+             })
+  var <- sigma2[[s]][G_a_long]
+  numer <- dnorm(x = Y_long, mean = mu, sd = sqrt(var), log = TRUE) +
     log(as.numeric((D_long == 1 & G_a_long == 1) | (D_long == 0 & G_a_long == 2) | (D_long == Z_long & G_a_long == 3))) +
     dnorm(x = logit_h1,
           mean = (v_long%*%delta_h1[[s-1]]),
@@ -430,8 +441,13 @@ for(s in 2:mcmc_samples){
   ###
   logit_l1_old <- logit_l1
   G_a_long_old <- G_a_long
-
-  denom <- 
+  mu_old <- sapply(1:sum(N), 
+                 function(j){
+                   W[j,]%*%beta[[s]][G_a_long_old[j],]
+                 })
+  
+  var_old <- sigma2[[s]][G_a_long_old]
+  denom <- dnorm(x = Y_long, mean = mu_old, sd = sqrt(var_old), log = TRUE) +
     log(as.numeric((D_long == 1 & G_a_long_old == 1) | (D_long == 0 & G_a_long_old == 2) | (D_long == Z_long & G_a_long_old == 3))) +
     dnorm(x = logit_l1_old,
           mean = (v_long%*%delta_l1[[s-1]]),
@@ -443,8 +459,12 @@ for(s in 2:mcmc_samples){
   G_a_long[(G_long == 1) | ((G_long == 5) & (a_long >= l0[[s]])) | ((G_long == 6) & (a_long >= l1[[s]]))] <- 1
   G_a_long[(G_long == 2) | ((G_long == 4) & (a_long < h0[[s]])) | ((G_long == 6) & (a_long < h1[[s]]))] <- 2
   G_a_long[(G_long == 3) | ((G_long == 4) & (a_long >= h0[[s]])) | ((G_long == 5) & (a_long < l0[[s]])) | ((G_long == 6) & (a_long >= h1[[s]]) & (a_long < l1[[s]]))] <- 3
-
-  numer <- 
+  mu <- sapply(1:sum(N), 
+             function(j){
+               W[j,]%*%beta[[s]][G_a_long[j],]
+             })
+  var <- sigma2[[s]][G_a_long]
+  numer <- dnorm(x = Y_long, mean = mu, sd = sqrt(var), log = TRUE) +
     log(as.numeric((D_long == 1 & G_a_long == 1) | (D_long == 0 & G_a_long == 2) | (D_long == Z_long & G_a_long == 3))) +
     dnorm(x = logit_l1,
           mean = (v_long%*%delta_l1[[s-1]]),
@@ -465,7 +485,7 @@ for(s in 2:mcmc_samples){
   #########
   #delta_h0
   #########
-  cov_delta_h0 <- chol2inv(chol(crossprod(v_long)/tau2_h0[[s-1]] + diag(2)/sigma2_delta))
+  cov_delta_h0 <- chol2inv(chol(crossprod(v_long)/tau2_h0[[s-1]] + diag(nv)/sigma2_delta))
   mu_delta_h0 <- cov_delta_h0%*%(crossprod(v_long, logit_h0))/tau2_h0[[s-1]]
   delta_h0[[s]]<-rmnorm(n = 1, mean = mu_delta_h0, varcov = cov_delta_h0)
   
@@ -478,7 +498,7 @@ for(s in 2:mcmc_samples){
   #########
   #delta_l0
   #########
-  cov_delta_l0 <- chol2inv(chol(crossprod(v_long)/tau2_l0[[s-1]] + diag(2)/sigma2_delta))
+  cov_delta_l0 <- chol2inv(chol(crossprod(v_long)/tau2_l0[[s-1]] + diag(nv)/sigma2_delta))
   mu_delta_l0 <- cov_delta_l0%*%(crossprod(v_long, logit_l0))/tau2_l0[[s-1]]
   delta_l0[[s]] <- rmnorm(n = 1, mean = mu_delta_l0, varcov = cov_delta_l0)
 
@@ -491,7 +511,7 @@ for(s in 2:mcmc_samples){
   #########
   #delta_h1
   #########
-  cov_delta_h1 <- chol2inv(chol(crossprod(v_long)/tau2_h1[[s-1]] + diag(2)/sigma2_delta))
+  cov_delta_h1 <- chol2inv(chol(crossprod(v_long)/tau2_h1[[s-1]] + diag(nv)/sigma2_delta))
   mu_delta_h1 <- cov_delta_h0%*%(crossprod(v_long, logit_h1))/tau2_h1[[s-1]]
   delta_h1[[s]] <- rmnorm(n = 1, mean = mu_delta_h1, varcov = cov_delta_h1)
   
@@ -504,7 +524,7 @@ for(s in 2:mcmc_samples){
   #########
   #delta_l1
   #########
-  cov_delta_l1 <- chol2inv(chol(crossprod(v_long)/tau2_l1[[s-1]] + diag(2)/sigma2_delta))
+  cov_delta_l1 <- chol2inv(chol(crossprod(v_long)/tau2_l1[[s-1]] + diag(nv)/sigma2_delta))
   mu_delta_l1 <- cov_delta_l1%*%(crossprod(v_long, logit_l1))/tau2_l1[[s-1]]
   delta_l1[[s]] <- rmnorm(n = 1, mean = mu_delta_l1, varcov = cov_delta_l1)
   
@@ -521,154 +541,139 @@ for(s in 2:mcmc_samples){
   #Estimands
   ##########
   
-  if (s %in% iters) { 
-    Y1 <- rep(NA, sum(N))
-    Y0 <- rep(NA, sum(N))
-    Y0p <- rep(NA, sum(N))
-    C <- rep(NA, sum(N))
-    
-    eff.a <- 0.8
-    eff.s <- 0.4
-    eff.sp <- 0.8
-    for (ij in 1:sum(N)) {
-        ## Need to figure out G(eff.a)
-        if (G_long[ij] %in% 1:3) {
-          G.eff.a <- G_long[ij]
-        }  else if (G_long[ij]==4) {
-          if (eff.a < h0[[s]][ij]) {
-            G.eff.a <- 2
-          } else {
-            G.eff.a <- 3
-          }
-        } else if (G_long[ij]==5) {
-          if (eff.a < l0[[s]][ij]) {
-            G.eff.a <- 3
-          } else {
-            G.eff.a <- 1
-          }
-        } else if (G_long[ij]==6) {
-          if (eff.a < h1[[s]][ij]) {
-            G.eff.a <- 2
-          } else if (eff.a < l1[[s]][ij]) {
-            G.eff.a <- 3
-          } else {
-            G.eff.a <- 1
-          }
-        }
-        
-        if (G.eff.a == 3) {
-          C[ij] <- 1
-        } else {
-          C[ij] <- 0
-        }
-        if (a_long[ij] == eff.a & S_long[ij] == eff.s) {
-          if (Z_long[ij] == 0) {
-            Y0[ij] <- Y_long[ij]
-            W0p <- W1 <- W[ij,]
-            W1[3] <- eff.s
-            W0p[3] <- eff.sp
-            W0p[4] <- W1[4] <- eff.a
-            W0p[5] <- 0
-            W1[5] <- 1
-
-            mu1<-W1%*%beta[[s]][G_long[ij],]
-            var1<-sigma2[[s]][G_long[ij]]
-            Y1[ij]<-rnorm(n = 1,
-                          mean = mu1,
-                          sd = sqrt(var1))
-            
-            mu0p<-W0p%*%beta[[s]][G_long[ij],]
-            var0p<-sigma2[[s]][G_long[ij]]
-            Y0p[ij]<-rnorm(n = 1,
-                           mean = mu0p,
-                           sd = sqrt(var0p))  
-          } else if (Z_long[ij]==1) {
-          Y1[ij] <- Y_long[ij]
-          W0p <- W0 <- W[ij,]
-          W0[3] <- eff.s
-          W0p[3] <- eff.sp
-          W0p[4] <- W0[4] <- eff.a
-          W0p[5] <- W0[5] <- 0
-          
-          mu0<-W0%*%beta[[s]][G_long[ij],]
-          var0<-sigma2[[s]][G_long[ij]]
-          Y0[ij]<-rnorm(n = 1,
-                        mean = mu0,
-                        sd = sqrt(var0)) 
-          
-          mu0p<-W0p%*%beta[[s]][G_long[ij],]
-          var0p<-sigma2[[s]][G_long[ij]]
-          Y0p[ij]<-rnorm(n = 1,
-                         mean = mu0p,
-                         sd = sqrt(var0p)) 
-          }
-        } else {
-        W0p <- W0 <- W1 <- W[ij,]
-        W0[3] <- W1[3] <- eff.s
-        W0p[3] <- eff.sp
-        W0p[4] <- W0[4] <- W1[4] <- eff.a
-        W0p[5] <- W0[5] <- 0
-        W1[5] <- 1
-        
-        mu0<-W0%*%beta[[s]][G_long[ij],]
-        var0<-sigma2[[s]][G_long[ij]]
-        Y0[ij]<-rnorm(n = 1,
-                      mean = mu0,
-                      sd = sqrt(var0)) 
-        
-        mu1<-W1%*%beta[[s]][G_long[ij],]
-        var1<-sigma2[[s]][G_long[ij]]
-        Y1[ij]<-rnorm(n = 1,
-                      mean = mu1,
-                      sd = sqrt(var1))
-        
-        mu0p<-W0p%*%beta[[s]][G_long[ij],]
-        var0p<-sigma2[[s]][G_long[ij]]
-        Y0p[ij]<-rnorm(n = 1,
-                       mean = mu0p,
-                       sd = sqrt(var0p)) 
-      }
-    }
-    CADE[s] <- sum(C*(Y1-Y0))/sum(C)
-    CASE[s] <- sum(C*(Y0-Y0p))/sum(C)
-  }
+  # if (s %in% 1:iters) { 
+  #   Y1 <- rep(NA, sum(N))
+  #   Y0 <- rep(NA, sum(N))
+  #   Y0p <- rep(NA, sum(N))
+  #   C <- rep(NA, sum(N))
+  #   
+  #   eff.a <- 0.8
+  #   eff.s <- 0.4
+  #   eff.sp <- 0.8
+  #   ij <- 0
+  #   for (j in 1:J) {
+  #     for (i in 1:N[j]) {
+  #       ij <- ij + 1
+  #       ## Need to figure out G(eff.a)
+  #       if (G[[s]][ij] %in% 1:3) {
+  #         G.eff.a <- G[[s]][ij]
+  #       }  else if (G[[s]][ij]==4) {
+  #         if (eff.a < h0[[s]][ij]) {
+  #           G.eff.a <- 2
+  #         } else {
+  #           G.eff.a <- 3
+  #         }
+  #       } else if (G[[s]][ij]==5) {
+  #         if (eff.a < l0[[s]][ij]) {
+  #           G.eff.a <- 3
+  #         } else {
+  #           G.eff.a <- 1
+  #         }
+  #       } else if (G[[s]][ij]==6) {
+  #         if (eff.a < h1[[s]][ij]) {
+  #           G.eff.a <- 2
+  #         } else if (eff.a < l1[[s]][ij]) {
+  #           G.eff.a <- 3
+  #         } else {
+  #           G.eff.a <- 1
+  #         }
+  #       }
+  #       
+  #       if (G.eff.a == 3) {
+  #         C[ij] <- 1
+  #       } else {
+  #         C[ij] <- 0
+  #       }
+  #       if (a_long[j] == eff.a & S_long[j] == eff.s & G_a_long[j] == 3) {
+  #         if (Z_long[j] == 0) {
+  #           Y0 <- Y_long[j]
+  #           W0p <- W1 <- W[ij,]
+  #           W1[np-2] <- eff.s
+  #           W0p[np-2] <- eff.sp
+  #           W0p[np-1] <- W1[np-1] <- eff.a
+  #           W0p[np] <- 0
+  #           W1[np] <- 1
+  # 
+  #           mu1<-W1%*%beta[[s]][G.eff.a,]
+  #           var1<-sigma2[[s]][G.eff.a]
+  #           Y1[ij]<-rnorm(n = 1,
+  #                         mean = mu1,
+  #                         sd = sqrt(var1))
+  #           
+  #           mu0p<-W0p%*%beta[[s]][G.eff.a,]
+  #           var0p<-sigma2[[s]][G.eff.a]
+  #           Y0p[ij]<-rnorm(n = 1,
+  #                          mean = mu0p,
+  #                          sd = sqrt(var0p))  
+  #         } else if (Z_long[j]==1) {
+  #         Y1 <- Y_long[j]
+  #         W0p <- W0 <- W[ij,]
+  #         W0[np-2] <- eff.s
+  #         W0p[np-2] <- eff.sp
+  #         W0p[np-1] <- W0[np-1] <- eff.a
+  #         W0p[np] <- W0[np] <- 0
+  #         
+  #         mu0<-W0%*%beta[[s]][G.eff.a,]
+  #         var0<-sigma2[[s]][G.eff.a]
+  #         Y0[ij]<-rnorm(n = 1,
+  #                       mean = mu0,
+  #                       sd = sqrt(var0)) 
+  #         
+  #         mu0p<-W0p%*%beta[[s]][G.eff.a,]
+  #         var0p<-sigma2[[s]][G.eff.a]
+  #         Y0p[ij]<-rnorm(n = 1,
+  #                        mean = mu0p,
+  #                        sd = sqrt(var0p)) 
+  #         }
+  #       } else {
+  #       W0p <- W0 <- W1 <- W[ij,]
+  #       W0[np-2] <- W1[np-2] <- eff.s
+  #       W0p[np-2] <- eff.sp
+  #       W0p[np-1] <- W0[np-1] <- W1[np-1] <- eff.a
+  #       W0p[np] <- W0[np] <- 0
+  #       W1[np] <- 1
+  #       
+  #       mu0<-W0%*%beta[[s]][G.eff.a,]
+  #       var0<-sigma2[[s]][G.eff.a]
+  #       Y0[ij]<-rnorm(n = 1,
+  #                     mean = mu0,
+  #                     sd = sqrt(var0)) 
+  #       
+  #       mu1<-W1%*%beta[[s]][G.eff.a,]
+  #       var1<-sigma2[[s]][G.eff.a]
+  #       Y1[ij]<-rnorm(n = 1,
+  #                     mean = mu1,
+  #                     sd = sqrt(var1))
+  #       
+  #       mu0p<-W0p%*%beta[[s]][G.eff.a,]
+  #       var0p<-sigma2[[s]][G.eff.a]
+  #       Y0p[ij]<-rnorm(n = 1,
+  #                      mean = mu0p,
+  #                      sd = sqrt(var0p)) 
+  #       }
+  #     }
+  #   }
+  #   CADE[s] <- sum(C*(Y1-Y0))/sum(C)
+  #   CASE[s] <- sum(C*(Y0-Y0p))/sum(C)
+  #}
 }
 print("saving")
-print(paste0("/home/cim24/palmer_scratch/OhnishiExtension/Results/", v,"/CADE",
-             id, ".rds"))
-saveRDS(CADE, paste0("/home/cim24/palmer_scratch/OhnishiExtension/Results/", v,"/CADE",
-                     id, ".rds"))
-saveRDS(CASE, paste0("/home/cim24/palmer_scratch/OhnishiExtension/Results/", v,"/CASE",
-                     id, ".rds"))
-saveRDS(beta, paste0("/home/cim24/palmer_scratch/OhnishiExtension/Results/", v,"/beta",
-                     id, ".rds"))
-saveRDS(sigma2, paste0("/home/cim24/palmer_scratch/OhnishiExtension/Results/", v,"/sigma2",
-                       id, ".rds"))
-saveRDS(G, paste0("/home/cim24/palmer_scratch/OhnishiExtension/Results/", v, "/G",
-                  id, ".rds"))
-saveRDS(alpha, paste0("/home/cim24/palmer_scratch/OhnishiExtension/Results/", v,"/alpha",
-                      id, ".rds"))
-saveRDS(h0, paste0("/home/cim24/palmer_scratch/OhnishiExtension/Results/", v,"/h0",
-                   id, ".rds"))
-saveRDS(l0, paste0("/home/cim24/palmer_scratch/OhnishiExtension/Results/", v,"/l0",
-                   id, ".rds"))
-saveRDS(h1, paste0("/home/cim24/palmer_scratch/OhnishiExtension/Results/", v,"/h1",
-                   id, ".rds"))
-saveRDS(l1, paste0("/home/cim24/palmer_scratch/OhnishiExtension/Results/", v,"/l1",
-                   id, ".rds"))
-saveRDS(delta_h0, paste0("/home/cim24/palmer_scratch/OhnishiExtension/Results/", v,"/deltah0",
-                         id, ".rds"))
-saveRDS(delta_l0, paste0("/home/cim24/palmer_scratch/OhnishiExtension/Results/", v,"/deltal0",
-                         id, ".rds"))
-saveRDS(delta_h1, paste0("/home/cim24/palmer_scratch/OhnishiExtension/Results/", v,"/deltah1",
-                         id, ".rds"))
-saveRDS(delta_l1, paste0("/home/cim24/palmer_scratch/OhnishiExtension/Results/", v,"/deltal1",
-                         id, ".rds"))
-saveRDS(tau2_h0, paste0("/home/cim24/palmer_scratch/OhnishiExtension/Results/", v,"/tau2h0",
-                        id, ".rds"))
-saveRDS(tau2_l0, paste0("/home/cim24/palmer_scratch/OhnishiExtension/Results/", v,"/tau2l0",
-                        id, ".rds"))
-saveRDS(tau2_h1, paste0("/home/cim24/palmer_scratch/OhnishiExtension/Results/", v,"/tau2h1",
-                        id, ".rds"))
-saveRDS(tau2_l1, paste0("/home/cim24/palmer_scratch/OhnishiExtension/Results/", v,"/tau2l1",
-                        id, ".rds"))
+print(paste0("/home/cim24/project/OhnishiExtension/Results/", v,"/CADE.rds"))
+#saveRDS(CADE, paste0("/home/cim24/project/OhnishiExtension/Results/", v,"/CADE.rds"))
+#saveRDS(CASE, paste0("/home/cim24/project/OhnishiExtension/Results/", v,"/CASE.rds"))
+saveRDS(beta, paste0("/home/cim24/project/OhnishiExtension/Results/", v,"/beta.rds"))
+saveRDS(sigma2, paste0("/home/cim24/project/OhnishiExtension/Results/", v,"/sigma2.rds"))
+saveRDS(G, paste0("/home/cim24/project/OhnishiExtension/Results/", v, "/G.rds"))
+saveRDS(alpha, paste0("/home/cim24/project/OhnishiExtension/Results/", v,"/alpha.rds"))
+saveRDS(h0, paste0("/home/cim24/project/OhnishiExtension/Results/", v,"/h0.rds"))
+saveRDS(l0, paste0("/home/cim24/project/OhnishiExtension/Results/", v,"/l0.rds"))
+saveRDS(h1, paste0("/home/cim24/project/OhnishiExtension/Results/", v,"/h1.rds"))
+saveRDS(l1, paste0("/home/cim24/project/OhnishiExtension/Results/", v,"/l1.rds"))
+saveRDS(delta_h0, paste0("/home/cim24/project/OhnishiExtension/Results/", v,"/deltah0.rds"))
+saveRDS(delta_l0, paste0("/home/cim24/project/OhnishiExtension/Results/", v,"/deltal0.rds"))
+saveRDS(delta_h1, paste0("/home/cim24/project/OhnishiExtension/Results/", v,"/deltah1.rds"))
+saveRDS(delta_l1, paste0("/home/cim24/project/OhnishiExtension/Results/", v,"/deltal1.rds"))
+saveRDS(tau2_h0, paste0("/home/cim24/project/OhnishiExtension/Results/", v,"/tau2h0.rds"))
+saveRDS(tau2_l0, paste0("/home/cim24/project/OhnishiExtension/Results/", v,"/tau2l0.rds"))
+saveRDS(tau2_h1, paste0("/home/cim24/project/OhnishiExtension/Results/", v,"/tau2h1.rds"))
+saveRDS(tau2_l1, paste0("/home/cim24/project/OhnishiExtension/Results/", v,"/tau2l1.rds"))
