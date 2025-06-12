@@ -42,7 +42,6 @@ for(j in 2:J){
 ###########
 #Predictors
 ###########
-set.seed(22)
 x_long<-rnorm(n = sum(N))
 q_long<-cbind(1, x_long)
 v_long<-q_long
