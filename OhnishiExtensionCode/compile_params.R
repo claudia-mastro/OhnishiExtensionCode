@@ -1,7 +1,7 @@
 means <- c()
 for (i in 1:500) {
-  if (file.exists(paste0("~/project/OhnishiExtension/Results/GP2_fixphi/param_bias", i, ".rds"))) {
-    f <- readRDS(paste0("~/project/OhnishiExtension/Results/GP2_fixphi/param_bias", i, ".rds"))
+  if (file.exists(paste0("~/palmer_scratch/OhnishiExtension/Results/GP2_fixphi/param_bias", i, ".rds"))) {
+    f <- readRDS(paste0("~/palmer_scratch/OhnishiExtension/Results/GP2_fixphi/param_bias", i, ".rds"))
     means <- cbind(means, f[,1])
   }
 }
@@ -29,8 +29,8 @@ print(xtable(out_table), sanitize.text.function = function(x){x})
 
 means <- c()
 for (i in 1:500) {
-  if (file.exists(paste0("~/project/OhnishiExtension/Results/GP1_fixc/param_bias", i, ".rds"))) {
-    f <- readRDS(paste0("~/project/OhnishiExtension/Results/GP1_fixc/param_bias", i, ".rds"))
+  if (file.exists(paste0("~/palmer_scratch/OhnishiExtension/Results/GP1_fixc/param_bias", i, ".rds"))) {
+    f <- readRDS(paste0("~/palmer_scratch/OhnishiExtension/Results/GP1_fixc/param_bias", i, ".rds"))
     means <- cbind(means, f)
   }
 }
@@ -46,8 +46,8 @@ names <- c("$\\mu_{AT1}$","$\\mu_{NT1}$", "$\\mu_{C1}$",
 
 means <- c()
 for (i in 1:500) {
-  if (file.exists(paste0("~/project/OhnishiExtension/Results/LM2_5.30/param_bias", i, ".rds"))) {
-    f <- readRDS(paste0("~/project/OhnishiExtension/Results/LM2_5.30/param_bias", i, ".rds"))
+  if (file.exists(paste0("~/palmer_scratch/OhnishiExtension/Results/LM2_N2500/param_bias", i, ".rds"))) {
+    f <- readRDS(paste0("~/palmer_scratch/OhnishiExtension/Results/LM2_N2500/param_bias", i, ".rds"))
     means <- cbind(means, f)
   }
 }

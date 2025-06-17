@@ -10,7 +10,7 @@ args <- commandArgs(trailingOnly = TRUE)
 id <- as.integer(args[1])
 print(id)
 source("~/OhnishiExtensionCode/Data_Simulation_GP.R")
-
+v <- "GP1"
 #########
 #Function
 #########

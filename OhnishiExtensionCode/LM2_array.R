@@ -12,7 +12,7 @@ Nj <- as.integer(args[3])
 print(Nj)
 nalpha <- as.integer(args[4])
 print(nalpha)
-v <- paste0("LM2_N", J*Nj)
+v <- paste0("LM2_sepN", J*Nj)
 #v <- "LM_5.5_nospace"
 print(v)
 source("~/OhnishiExtensionCode/Data_Simulation_LM2.R")

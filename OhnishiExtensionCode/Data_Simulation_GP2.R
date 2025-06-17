@@ -2,7 +2,7 @@
 #Seed
 ##############
 set.seed(id)
-source("~/project/OhnishiExtension/JWCode/effects.R")
+source("~/OhnishiExtensionCode/effects.R")
 
 ################
 #Global Settings
@@ -11,7 +11,7 @@ J<-20
 N<-rep(25,
        times = J)
 
-M<-3
+M<-6
 pz1=0.0
 pz2=0.2
 pz3=0.4

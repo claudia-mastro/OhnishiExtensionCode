@@ -54,15 +54,23 @@ beta_true<-matrix(NA,
                   ncol = 5)
 sigma2_true<-rep(NA,
                  times = 6)
-for(k in 1:6 ){
 
-   beta_true[k,]<-c(rnorm(n = 2), rnorm(n=1, mean=2, sd=0.5),
-                    rnorm(n=1, mean=1, sd=0.5), rnorm(n=1, mean=2, sd=0.5))
-   sigma2_true[k]<-runif(n = 1,
-                         min = 0.00,
-                         max = 0.10)
-
-   }
+beta_true[1,] <- c(-12, 4, 0, 10, 12)
+beta_true[2,] <- c(-8, 8, 4, 6, 10)
+beta_true[3,] <- c(-4, 12, 8, 0, 8)
+beta_true[4,] <- c(0, -12, 12, -6, 6)
+beta_true[5,] <- c(6, -8, -12, -10, 4)
+beta_true[6,] <- c(12, -4, -8, -12, -4)
+sigma2_true <- c(0.02, 0.04, 0.06, 0.08, 0.10, 0.12)
+# for(k in 1:6 ){
+# 
+#    beta_true[k,]<-c(rnorm(n = 2), rnorm(n=1, mean=2, sd=0.5),
+#                     rnorm(n=1, mean=1, sd=0.5), rnorm(n=1, mean=2, sd=0.5))
+#    sigma2_true[k]<-runif(n = 1,
+#                          min = 0.00,
+#                          max = 0.10)
+# 
+#    }
 
 alpha_true<-matrix(NA,
                    nrow = 6,

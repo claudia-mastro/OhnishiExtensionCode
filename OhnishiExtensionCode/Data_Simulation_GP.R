@@ -2,7 +2,7 @@
 #Seed
 ##############
 set.seed(id)
-source("~/project/OhnishiExtension/JWCode/effects_GP1.R")
+source("~/OhnishiExtensionCode/effects_GP1.R")
 
 ################
 #Global Settings
