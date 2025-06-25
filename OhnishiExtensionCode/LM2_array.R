@@ -12,7 +12,7 @@ Nj <- as.integer(args[3])
 print(Nj)
 nalpha <- as.integer(args[4])
 print(nalpha)
-v <- paste0("LM2_sepN", J*Nj)
+v <- paste0("LM2_sepN", J*Nj, "_50k")
 #v <- "LM_5.5_nospace"
 print(v)
 source("~/OhnishiExtensionCode/Data_Simulation_LM2.R")
@@ -36,8 +36,8 @@ set.seed(id)
 ################
 #Global Settings
 ################
-mcmc_samples<-10000
-burnin <- 5000
+mcmc_samples<-50000
+burnin <- 25000
 thin <- 10
 iters <- burnin:mcmc_samples
 iters <- iters[seq(1, mcmc_samples-burnin + thin, thin)]
@@ -89,6 +89,8 @@ tau2_l1 <- list(tau2_l1)[rep(1,mcmc_samples)]
 CADE<-rep(NA, mcmc_samples)
 CASE<-rep(NA, mcmc_samples)
 
+pi_mat <- array(dim=c(mcmc_samples, sum(N), 6))
+
 ###############
 #Initial Values
 ###############
@@ -105,12 +107,12 @@ for(k in 1:5){
   alpha[[1]][,k] <- rep(0.00, 2)
   log_pi_mat_temp[,k] <- q_long%*%alpha[[1]][,k]
 }
-log_pi_mat <- pi_mat<-matrix(NA, nrow = sum(N), ncol = 6)
+log_pi_mat <- pi_mat[1,,]<-matrix(NA, nrow = sum(N), ncol = 6)
 
 for(k in 1:6){
   log_pi_mat[,k] <- log_pi_mat_temp[,k] -
     apply(log_pi_mat_temp, 1, logSumExp) 
-  pi_mat[,k] <- 1.00/rowSums(exp(log_pi_mat_temp - log_pi_mat_temp[,k]))
+  pi_mat[1, ,k] <- 1.00/rowSums(exp(log_pi_mat_temp - log_pi_mat_temp[,k]))
 }
 
 for(j in 1:J){
@@ -273,7 +275,7 @@ for(s in 2:mcmc_samples){
     for(l in 1:2) {
       log_pi_mat_temp_old <- log_pi_mat_temp
       log_pi_mat_old <- log_pi_mat
-      pi_mat_old <- pi_mat
+      pi_mat_old <- pi_mat[s,,]
       denom <- sum(log_pi_mat_old[cbind(seq_along(G_long), G_long)]) +
         dnorm(x = alpha[[s-1]][l, k],
               mean = 0.00,
@@ -289,7 +291,7 @@ for(s in 2:mcmc_samples){
       for(m in 1:6) {
         log_pi_mat[,m] <- log_pi_mat_temp[,m] -
           apply(log_pi_mat_temp, 1, logSumExp)
-        pi_mat[,m] <- 1.00/rowSums(exp(log_pi_mat_temp - log_pi_mat_temp[,m]))
+        pi_mat[s,,m] <- 1.00/rowSums(exp(log_pi_mat_temp - log_pi_mat_temp[,m]))
       }
       
       numer <- sum(log_pi_mat[cbind(seq_along(G_long), G_long)]) +
@@ -305,7 +307,7 @@ for(s in 2:mcmc_samples){
       if(ratio < uni_draw){
         log_pi_mat_temp<-log_pi_mat_temp_old
         log_pi_mat<-log_pi_mat_old
-        pi_mat<-pi_mat_old
+        pi_mat[s,,]<-pi_mat_old
         alpha[[s]][l, k] <- alpha[[s-1]][l, k]
         accept<-0
       }
@@ -671,4 +673,6 @@ saveRDS(tau2_l0, paste0("/home/cim24/palmer_scratch/OhnishiExtension/Results/", 
 saveRDS(tau2_h1, paste0("/home/cim24/palmer_scratch/OhnishiExtension/Results/", v,"/tau2h1",
                         id, ".rds"))
 saveRDS(tau2_l1, paste0("/home/cim24/palmer_scratch/OhnishiExtension/Results/", v,"/tau2l1",
+                        id, ".rds"))
+saveRDS(pi_mat, paste0("/home/cim24/palmer_scratch/OhnishiExtension/Results/", v,"/pi",
                         id, ".rds"))

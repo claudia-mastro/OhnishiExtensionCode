@@ -10,6 +10,11 @@ source("~/OhnishiExtensionCode/effects.R")
 J<-20
 N<-rep(25,
        times = J)
+Ns <- list(0)
+Ns[[1]] <- 1:N[1]
+for (j in 2:J) {
+  Ns[[j]] <- (Ns[[j-1]][N[j-1]]+1):(Ns[[j-1]][N[j-1]]+N[j])
+}
 
 M<-6
 pz1=0.0
@@ -342,11 +347,11 @@ phi_true_mat[1:4,3] <- phi_true[[3]]
 phi_true_mat[1:5,4] <- phi_true[[4]]
 phi_true_mat[1:5,5] <- phi_true[[5]]
 phi_true_mat[1:6,6] <- phi_true[[6]]
-effs <- CADE.CASE(eff.a, eff.s, eff.sp, 0, R_long_true, h4_true, l5_true, h6_true, l6_true, 
-          phi_true_mat, theta_true, mu_true, sigma2_true, psi2_true)
-
-CADE.true <- effs[[1]]
-CASE.true <- effs[[2]]
+# effs <- CADE.CASE(eff.a, eff.s, eff.sp, 0, R_long_true, h4_true, l5_true, h6_true, l6_true, 
+#           phi_true_mat, theta_true, mu_true, sigma2_true, psi2_true)
+# 
+# CADE.true <- effs[[1]]
+# CASE.true <- effs[[2]]
 # CADE.true <- sum((CADE.G==3)*(Y1_long - Y0_long))/(sum(CADE.G==3))
 # CASE.true <- sum((CADE.G==3)*(Y0_long - Y0p_long))/(sum(CADE.G==3))
 

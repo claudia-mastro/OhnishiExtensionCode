@@ -1,8 +1,8 @@
 library(LaplacesDemon)
 library(coda)
 
-mcmc_samples<-100000
-burnin <- 50000
+mcmc_samples<-50000
+burnin <- 25000
 thin <- 10
 iters <- burnin:mcmc_samples
 iters <- iters[seq(1, mcmc_samples-burnin + thin, thin)]
@@ -10,7 +10,7 @@ iters <- iters[seq(1, mcmc_samples-burnin + thin, thin)]
 J <- 100
 Nj <- 25
 nalpha <- 11
-v <- paste0("LM2_N", J*Nj)
+v <- paste0("LM2_sepN", J*Nj, "_50k")
 #v <- "LM_5.5_nospace"
 
 CADE.bias <- rep(NA, 500)
@@ -28,18 +28,18 @@ CASE.upper <- rep(NA, 500)
 CADE.coverage <- rep(NA, 500)
 CASE.coverage <- rep(NA, 500)
 
-CADE.convergence <- rep(NA, 500)
-CASE.convergence <- rep(NA, 500)
-for (i in 1:500) {
-  if (file.exists(paste0("~/palmer_scratch/OhnishiExtension/Results/", v, "/beta", i, ".rds"))) {
-    CADE <- readRDS(paste0("~/palmer_scratch/OhnishiExtension/Results/", v, "/CADE", i, ".rds"))
-    CASE <- readRDS(paste0("~/palmer_scratch/OhnishiExtension/Results/", v, "/CASE", i, ".rds"))
-    CADE.convergence[i] <- pnorm(abs(geweke.diag(CADE[-1], frac1=0.5)$z), lower.tail=FALSE)*2 > 0.05
-    CASE.convergence[i] <- pnorm(abs(geweke.diag(CASE[-1], frac1=0.5)$z), lower.tail=FALSE)*2 > 0.05
-  }
-}
-mean(CADE.convergence, na.rm=TRUE)
-mean(CASE.convergence, na.rm=TRUE)
+# CADE.convergence <- rep(NA, 500)
+# CASE.convergence <- rep(NA, 500)
+# for (i in 1:500) {
+#   if (file.exists(paste0("~/palmer_scratch/OhnishiExtension/Results/", v, "/beta", i, ".rds"))) {
+#     CADE <- readRDS(paste0("~/palmer_scratch/OhnishiExtension/Results/", v, "/CADE", i, ".rds"))
+#     CASE <- readRDS(paste0("~/palmer_scratch/OhnishiExtension/Results/", v, "/CASE", i, ".rds"))
+#     CADE.convergence[i] <- pnorm(abs(geweke.diag(CADE[-1], frac1=0.5)$z), lower.tail=FALSE)*2 > 0.05
+#     CASE.convergence[i] <- pnorm(abs(geweke.diag(CASE[-1], frac1=0.5)$z), lower.tail=FALSE)*2 > 0.05
+#   }
+# }
+# mean(CADE.convergence, na.rm=TRUE)
+# mean(CASE.convergence, na.rm=TRUE)
 
 for (i in 1:500) {
 if (file.exists(paste0("~/palmer_scratch/OhnishiExtension/Results/", v, "/CADE", i, ".rds"))) {
@@ -48,15 +48,15 @@ if (file.exists(paste0("~/palmer_scratch/OhnishiExtension/Results/", v, "/CADE",
   CADE.true.vec[i] <- CADE.true
   CASE.true.vec[i] <- CASE.true
   
-  CADE <- readRDS(paste0("~/palmer_scratch/OhnishiExtension/Results/", v, "/CADE", i, ".rds"))
-  CASE <- readRDS(paste0("~/palmer_scratch/OhnishiExtension/Results/", v, "/CASE", i, ".rds"))
+  CADE <- readRDS(paste0("~/palmer_scratch/OhnishiExtension/Results/", v, "/CADEecr", i, ".rds"))
+  CASE <- readRDS(paste0("~/palmer_scratch/OhnishiExtension/Results/", v, "/CASEecr", i, ".rds"))
   
-  CADE.lower[i] <- quantile(CADE[iters], 0.025)
-  CADE.upper[i] <- quantile(CADE[iters], 0.975)
-  CASE.lower[i] <- quantile(CASE[iters], 0.025)
-  CASE.upper[i] <- quantile(CASE[iters], 0.975)
-  CADE.coverage[i] <- (CADE.true >= quantile(CADE[iters], 0.025)) & (CADE.true <= quantile(CADE[iters], 0.975))
-  CASE.coverage[i] <- (CASE.true >= quantile(CASE[iters], 0.025)) & (CASE.true <= quantile(CASE[iters], 0.975))
+  CADE.lower[i] <- quantile(CADE[iters], 0.025, na.rm=TRUE)
+  CADE.upper[i] <- quantile(CADE[iters], 0.975, na.rm=TRUE)
+  CASE.lower[i] <- quantile(CASE[iters], 0.025, na.rm=TRUE)
+  CASE.upper[i] <- quantile(CASE[iters], 0.975, na.rm=TRUE)
+  CADE.coverage[i] <- (CADE.true >= quantile(CADE[iters], 0.025, na.rm=TRUE)) & (CADE.true <= quantile(CADE[iters], 0.975, na.rm=TRUE))
+  CASE.coverage[i] <- (CASE.true >= quantile(CASE[iters], 0.025, na.rm=TRUE)) & (CASE.true <= quantile(CASE[iters], 0.975, na.rm=TRUE))
   
   CADE.abs.bias[i] <- median(CADE[iters]-CADE.true)
   CASE.abs.bias[i] <- median(CASE[iters]-CASE.true)
@@ -64,7 +64,6 @@ if (file.exists(paste0("~/palmer_scratch/OhnishiExtension/Results/", v, "/CADE",
   CASE.bias[i] <- median(CASE[iters]-CASE.true)/CASE.true * 100
   CADE.var[i] <- var(CADE[iters])
   CASE.var[i] <- var(CASE[iters])
-  
 }
 }
 paste(round(CADE.true, 2),

@@ -9,6 +9,11 @@ set.seed(id)
 
 N<-rep(Nj,
        times = J)
+Ns <- list(0)
+Ns[[1]] <- 1:N[1]
+for (j in 2:J) {
+  Ns[[j]] <- (Ns[[j-1]][N[j-1]]+1):(Ns[[j-1]][N[j-1]]+N[j])
+}
 
 M<-J
 a<-sample(seq(0, 1, 1/(nalpha-1)),
