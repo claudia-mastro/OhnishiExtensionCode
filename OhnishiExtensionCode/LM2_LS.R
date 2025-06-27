@@ -1,5 +1,5 @@
-i <- 2
-v <- "LM2_sepN2500"
+i <- 1
+v <- "LM2_sepN2500_50k"
 id <- i
 J <- 100
 Nj <- 25
@@ -22,7 +22,7 @@ mcmc.pars[,,3] <- beta3.df
 mcmc.pars[,,4] <- beta4.df
 mcmc.pars[,,5] <- beta5.df
 mcmc.pars[,,6] <- sig.df
-labs <- label.switching("AIC", z=G.df, K=6, mcmc=mcmc.pars)
+labs <- label.switching(c("AIC", "DATA-BASED", "ECR-ITERATIVE-1"), z=G.df[iters,], K=6, mcmc=mcmc.pars[iters,,], data=Y_long)
 pm <- permute.mcmc(mcmc.pars, labs$permutations$AIC)
 
 par(mfrow=c(5,2), mar=c(2,4,2,2))

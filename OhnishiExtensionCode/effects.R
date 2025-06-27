@@ -176,7 +176,6 @@ CADE.CASE <- function(alpha, S, Sp, Z, R, h4, l5, h6, l6, phi, theta, mu, sig2, 
   for (j in 1:J) {
     for (i in 1:N[J]) {
       ij <- ij + 1
-      print(ij)
       ## Need to figure out G(eff.a)
       if (R[ij] %in% 1:3) {
         G.eff.a <- R[ij]
@@ -217,9 +216,7 @@ CADE.CASE <- function(alpha, S, Sp, Z, R, h4, l5, h6, l6, phi, theta, mu, sig2, 
         W1[ij,4] <- 1
         
         Sig0 <- calcSigma(1+sum(N), phi[,R[ij]], rbind(W0[ij,], Whl[[R[ij]]]))
-        Sig_obs <- calcSigma(sum(N), phi[,R[ij]], Whl[[R[ij]]])
-        Sig_new <- calcSigma(sum(N), phi[,R[ij]], W0)
-        
+
         theta0_mean <- Sig0[1:1, 2:(sum(N)+1)]%*%
           chol2inv(chol(Sig0[2:(sum(N)+1), 2:(sum(N)+1)]))%*%
           theta_true[,R[ij]]
@@ -229,33 +226,33 @@ CADE.CASE <- function(alpha, S, Sp, Z, R, h4, l5, h6, l6, phi, theta, mu, sig2, 
           Sig0[2:(sum(N)+1), 1:1]))
         theta0 <- rmnorm(1, mean = theta0_mean, varcov = theta0_var)
         Y0[ij] <- rnorm(n = 1,
-                        mean = mu[R[ij]] + theta0[ij],
+                        mean = mu[R[ij]] + theta0,
                         sd = sqrt(sig2[R[ij]]))
         
-        Sig1 <- calcSigma(2*sum(N), phi[,R[ij]], rbind(W1, Whl[[R[ij]]]))
-        theta1_mean <- Sig1[1:sum(N), (sum(N)+1):(sum(N)*2)]%*%
-          chol2inv(chol(Sig1[(sum(N)+1):(sum(N)*2), (sum(N)+1):(sum(N)*2)]))%*%
+        Sig1 <- calcSigma(1+sum(N), phi[,R[ij]], rbind(W1[ij,], Whl[[R[ij]]]))
+        theta1_mean <- Sig1[1:1, 2:(sum(N)+1)]%*%
+          chol2inv(chol(Sig1[2:(sum(N)+1), 2:(sum(N)+1)]))%*%
           theta_true[,R[ij]]
-        theta1_var <- Sig1[1:sum(N), 1:sum(N)] - 
-          (Sig1[1:sum(N), (sum(N)+1):(sum(N)*2)]%*%
-             chol2inv(chol(Sig1[(sum(N)+1):(sum(N)*2), (sum(N)+1):(sum(N)*2)]))%*%
-             Sig1[(sum(N)+1):(sum(N)*2), 1:sum(N)])        
+        theta1_var <- Sig1[1:1, 1:1] - 
+          (Sig0[1:1, 2:(sum(N)+1)]%*%
+             chol2inv(chol(Sig1[2:(sum(N)+1), 2:(sum(N)+1)]))%*%
+             Sig1[2:(sum(N)+1), 1:1])        
         theta1 <- rmnorm(1, mean = theta1_mean, varcov = theta1_var)
         Y1[ij] <- rnorm(n = 1,
-                        mean = mu[R[ij]] + theta1[ij],
+                        mean = mu[R[ij]] + theta1,
                         sd = sqrt(sig2[R[ij]]))
         
-        Sig0p <- calcSigma(2*sum(N), phi[,R[ij]], rbind(W0p, Whl[[R[ij]]]))
-        theta0p_mean <- Sig0p[1:sum(N), (sum(N)+1):(sum(N)*2)]%*%
-          chol2inv(chol(Sig0p[(sum(N)+1):(sum(N)*2), (sum(N)+1):(sum(N)*2)]))%*%
+        Sig0p <- calcSigma(1+sum(N), phi[,R[ij]], rbind(W0p[ij,], Whl[[R[ij]]]))
+        theta0p_mean <- Sig0p[1:1, 2:(sum(N)+1)]%*%
+          chol2inv(chol(Sig0p[2:(sum(N)+1), 2:(sum(N)+1)]))%*%
           theta_true[,R[ij]]
-        theta0p_var <- Sig0p[1:sum(N), 1:sum(N)] - 
-          (Sig1[1:sum(N), (sum(N)+1):(sum(N)*2)]%*%
-             chol2inv(chol(Sig0p[(sum(N)+1):(sum(N)*2), (sum(N)+1):(sum(N)*2)]))%*%
-             Sig0p[(sum(N)+1):(sum(N)*2), 1:sum(N)])
+        theta0p_var <- Sig0p[1:1, 1:1] - 
+          (Sig1[1:1, 2:(sum(N)+1)]%*%
+             chol2inv(chol(Sig0p[2:(sum(N)+1), 2:(sum(N)+1)]))%*%
+             Sig0p[2:(sum(N)+1), 1:1])
         theta0p <- rmnorm(1, mean = theta0p_mean, varcov = theta0p_var)
         Y0p[ij] <- rnorm(n = 1,
-                         mean = mu[R[ij]] + theta0p[ij],
+                         mean = mu[R[ij]] + theta0p,
                          sd = sqrt(sig2[R[ij]]))
       }
     }

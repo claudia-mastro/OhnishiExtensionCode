@@ -12,7 +12,7 @@ Nj <- as.integer(args[3])
 print(Nj)
 nalpha <- as.integer(args[4])
 print(nalpha)
-v <- paste0("LM2_sepN", J*Nj, "_50k")
+v <- paste0("LM2_sepN", J*Nj, "_IG23")
 #v <- "LM_5.5_nospace"
 print(v)
 source("~/OhnishiExtensionCode/Data_Simulation_LM2.R")
@@ -43,12 +43,12 @@ iters <- burnin:mcmc_samples
 iters <- iters[seq(1, mcmc_samples-burnin + thin, thin)]
 
 sigma2_beta<-100.00^2
-a_sigma2<-0.01
-b_sigma2<-0.01
+a_sigma2<-3
+b_sigma2<-2
 sigma2_alpha<-1.00^2
 sigma2_delta<-1.00^2
-a_tau2<-0.01
-b_tau2<-0.01
+a_tau2<-3
+b_tau2<-2
 
 shape_tau2_update<-sum(N)/2.00 +
   a_tau2
@@ -275,7 +275,7 @@ for(s in 2:mcmc_samples){
     for(l in 1:2) {
       log_pi_mat_temp_old <- log_pi_mat_temp
       log_pi_mat_old <- log_pi_mat
-      pi_mat_old <- pi_mat[s,,]
+      pi_mat_old <- pi_mat[s-1,,]
       denom <- sum(log_pi_mat_old[cbind(seq_along(G_long), G_long)]) +
         dnorm(x = alpha[[s-1]][l, k],
               mean = 0.00,

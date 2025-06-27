@@ -5,8 +5,8 @@ library(truncnorm)
 library(Matrix)
 args <- commandArgs(trailingOnly = TRUE)
 i <- as.integer(args[1])
-
-v <- "GP2_fixphi"
+id <- i
+v <- "GP2"
 source("~/OhnishiExtensionCode/effects.R")
 
 burnin <- 5000
@@ -16,6 +16,8 @@ iters <- iters[seq(1, 10000-burnin + thin, thin)]
 
 bias_CADE <- rep(NA, length(iters))
 bias_CASE <- rep(NA, length(iters))
+abs_CADE <- rep(NA, length(iters))
+abs_CASE <- rep(NA, length(iters))
 id <- i
 print(i)
 source("~/OhnishiExtensionCode/Data_Simulation_GP2.R")
@@ -30,16 +32,16 @@ phi_true_mat[1:6,6] <- phi_true[[6]]
 eff <- CADE.CASE(0.8, 0.4, 0.8, 0, R_long_true, h4_true, l5_true, h6_true, l6_true, 
                  phi_true_mat, theta_true, mu_true, sigma2_true, psi2_true)
 
-R <- readRDS(paste0("~/palmer_scratch/OhnishiExtension/Results", v, "/R", id, ".rds"))
-h4 <- readRDS(paste0("~/palmer_scratch/OhnishiExtension/Results", v, "/h4", id, ".rds"))
-l5 <- readRDS(paste0("~/palmer_scratch/OhnishiExtension/Results", v, "/l5", id, ".rds"))
-h6 <- readRDS(paste0("~/palmer_scratch/OhnishiExtension/Results", v, "/h6", id, ".rds"))
-l6 <- readRDS(paste0("~/palmer_scratch/OhnishiExtension/Results", v, "/l6", id, ".rds"))
-phi <- readRDS(paste0("~/palmer_scratch/OhnishiExtension/Results", v, "/phi", id, ".rds"))
-theta <- readRDS(paste0("~/palmer_scratch/OhnishiExtension/Results", v, "/theta", id, ".rds"))
-mu <- readRDS(paste0("~/palmer_scratch/OhnishiExtension/Results", v, "/mu", id, ".rds"))
-sigma2 <- readRDS(paste0("~/palmer_scratch/OhnishiExtension/Results", v, "/sig2", id, ".rds"))
-psi2 <- readRDS(paste0("~/palmer_scratch/OhnishiExtension/Results", v, "/psi2", id, ".rds"))
+R <- readRDS(paste0("~/palmer_scratch/OhnishiExtension/Results/", v, "/R", id, ".rds"))
+h4 <- readRDS(paste0("~/palmer_scratch/OhnishiExtension/Results/", v, "/h4", id, ".rds"))
+l5 <- readRDS(paste0("~/palmer_scratch/OhnishiExtension/Results/", v, "/l5", id, ".rds"))
+h6 <- readRDS(paste0("~/palmer_scratch/OhnishiExtension/Results/", v, "/h6", id, ".rds"))
+l6 <- readRDS(paste0("~/palmer_scratch/OhnishiExtension/Results/", v, "/l6", id, ".rds"))
+phi <- readRDS(paste0("~/palmer_scratch/OhnishiExtension/Results/", v, "/phi", id, ".rds"))
+theta <- readRDS(paste0("~/palmer_scratch/OhnishiExtension/Results/", v, "/theta", id, ".rds"))
+mu <- readRDS(paste0("~/palmer_scratch/OhnishiExtension/Results/", v, "/mu", id, ".rds"))
+sigma2 <- readRDS(paste0("~/palmer_scratch/OhnishiExtension/Results/", v, "/sig2", id, ".rds"))
+psi2 <- readRDS(paste0("~/palmer_scratch/OhnishiExtension/Results/", v, "/psi2", id, ".rds"))
 
 j <- 0
 for (s in iters) {
@@ -48,7 +50,11 @@ for (s in iters) {
                    phi[[s]], theta[[s]], mu[[s]], sigma2[[s]], psi2[[s]])
   bias_CADE[j] <- (est[[1]]-eff[[1]])/abs(eff[[1]])*100
   bias_CASE[j] <- (est[[2]]-eff[[2]])/abs(eff[[2]])*100
+  abs_CADE[j] <- (est[[1]]-eff[[1]])
+  abs_CASE[j] <- (est[[2]]-eff[[2]]) 
   print(j/length(iters)*100)
 }
-saveRDS(bias_CADE, paste0("~/palmer_scratch/OhnishiExtension/Results", v, "/CADE_bias", id, ".rds"))
-saveRDS(bias_CASE, paste0("~/palmer_scratch/OhnishiExtension/Results", v, "/CASE_bias", id, ".rds"))
+saveRDS(bias_CADE, paste0("~/palmer_scratch/OhnishiExtension/Results/", v, "/CADE_pbias", id, ".rds"))
+saveRDS(bias_CASE, paste0("~/palmer_scratch/OhnishiExtension/Results/", v, "/CASE_pbias", id, ".rds"))
+saveRDS(bias_CADE, paste0("~/palmer_scratch/OhnishiExtension/Results/", v, "/CADE_bias", id, ".rds"))
+saveRDS(bias_CASE, paste0("~/palmer_scratch/OhnishiExtension/Results/", v, "/CASE_bias", id, ".rds"))
