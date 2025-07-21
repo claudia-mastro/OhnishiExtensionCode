@@ -11,7 +11,7 @@ Nj <- as.integer(args[3])
 print(Nj)
 nalpha <- as.integer(args[4])
 print(nalpha)
-v <- paste0("LM2_sepN", J*Nj, "_50k")
+v <- paste0("LM2_sepN", J*Nj, "_IG23")
 
 mcmc_samples<-50000
 burnin <- 25000
@@ -180,15 +180,17 @@ for (s in iters) {
   Y1_mat[si,] <- Y1
 }
 
-# if (s %in% iters) { 
+# sigma2 <- sig
+# for (s in iters) {
 #   Y1 <- rep(NA, sum(N))
 #   Y0 <- rep(NA, sum(N))
 #   Y0p <- rep(NA, sum(N))
 #   C <- rep(NA, sum(N))
-#   
+#   si <- si + 1
 #   eff.a <- 0.8
 #   eff.s <- 0.4
 #   eff.sp <- 0.8
+#   G_long <- c(G[[s]])
 #   for (ij in 1:sum(N)) {
 #     ## Need to figure out G(eff.a)
 #     if (G_long[ij] %in% 1:3) {
@@ -214,7 +216,7 @@ for (s in iters) {
 #         G.eff.a <- 1
 #       }
 #     }
-#     
+# 
 #     if (G.eff.a == 3) {
 #       C[ij] <- 1
 #     } else {
@@ -229,18 +231,18 @@ for (s in iters) {
 #         W0p[4] <- W1[4] <- eff.a
 #         W0p[5] <- 0
 #         W1[5] <- 1
-#         
+# 
 #         mu1<-W1%*%beta[[s]][G_long[ij],]
 #         var1<-sigma2[[s]][G_long[ij]]
 #         Y1[ij]<-rnorm(n = 1,
 #                       mean = mu1,
 #                       sd = sqrt(var1))
-#         
+# 
 #         mu0p<-W0p%*%beta[[s]][G_long[ij],]
 #         var0p<-sigma2[[s]][G_long[ij]]
 #         Y0p[ij]<-rnorm(n = 1,
 #                        mean = mu0p,
-#                        sd = sqrt(var0p))  
+#                        sd = sqrt(var0p))
 #       } else if (Z_long[ij]==1) {
 #         Y1[ij] <- Y_long[ij]
 #         W0p <- W0 <- W[ij,]
@@ -248,18 +250,18 @@ for (s in iters) {
 #         W0p[3] <- eff.sp
 #         W0p[4] <- W0[4] <- eff.a
 #         W0p[5] <- W0[5] <- 0
-#         
+# 
 #         mu0<-W0%*%beta[[s]][G_long[ij],]
 #         var0<-sigma2[[s]][G_long[ij]]
 #         Y0[ij]<-rnorm(n = 1,
 #                       mean = mu0,
-#                       sd = sqrt(var0)) 
-#         
+#                       sd = sqrt(var0))
+# 
 #         mu0p<-W0p%*%beta[[s]][G_long[ij],]
 #         var0p<-sigma2[[s]][G_long[ij]]
 #         Y0p[ij]<-rnorm(n = 1,
 #                        mean = mu0p,
-#                        sd = sqrt(var0p)) 
+#                        sd = sqrt(var0p))
 #       }
 #     } else {
 #       W0p <- W0 <- W1 <- W[ij,]
@@ -268,24 +270,24 @@ for (s in iters) {
 #       W0p[4] <- W0[4] <- W1[4] <- eff.a
 #       W0p[5] <- W0[5] <- 0
 #       W1[5] <- 1
-#       
+# 
 #       mu0<-W0%*%beta[[s]][G_long[ij],]
 #       var0<-sigma2[[s]][G_long[ij]]
 #       Y0[ij]<-rnorm(n = 1,
 #                     mean = mu0,
-#                     sd = sqrt(var0)) 
-#       
+#                     sd = sqrt(var0))
+# 
 #       mu1<-W1%*%beta[[s]][G_long[ij],]
 #       var1<-sigma2[[s]][G_long[ij]]
 #       Y1[ij]<-rnorm(n = 1,
 #                     mean = mu1,
 #                     sd = sqrt(var1))
-#       
+# 
 #       mu0p<-W0p%*%beta[[s]][G_long[ij],]
 #       var0p<-sigma2[[s]][G_long[ij]]
 #       Y0p[ij]<-rnorm(n = 1,
 #                      mean = mu0p,
-#                      sd = sqrt(var0p)) 
+#                      sd = sqrt(var0p))
 #     }
 #   }
 #   CADE[s] <- sum(C*(Y1-Y0))/sum(C)
@@ -293,11 +295,11 @@ for (s in iters) {
 #   Y0_mat[si,] <- Y0
 #   Y1_mat[si,] <- Y1
 # }
-# }
-# saveRDS(CADE, paste0("/home/cim24/palmer_scratch/OhnishiExtension/Results/", v,"/CADEaic",
-#                      id, ".rds"))
-# saveRDS(CASE, paste0("/home/cim24/palmer_scratch/OhnishiExtension/Results/", v,"/CASEaic",
-#                      id, ".rds"))
+
+saveRDS(CADE, paste0("/home/cim24/palmer_scratch/OhnishiExtension/Results/", v,"/CADEaic",
+                     id, ".rds"))
+saveRDS(CASE, paste0("/home/cim24/palmer_scratch/OhnishiExtension/Results/", v,"/CASEaic",
+                     id, ".rds"))
 saveRDS(Y0_mat, paste0("/home/cim24/palmer_scratch/OhnishiExtension/Results/", v,"/Y0aic",
                      id, ".rds"))
 saveRDS(Y1_mat, paste0("/home/cim24/palmer_scratch/OhnishiExtension/Results/", v,"/Y1aic",

@@ -10,7 +10,7 @@ args <- commandArgs(trailingOnly = TRUE)
 id <- as.integer(args[1])
 print(id)
 source("~/OhnishiExtensionCode//Data_Simulation_GP2.R")
-v <- "GP2"
+v <- "GP2_N1000"
 p <- 4
 saveRDS(list(theta_true, sigma2_true, mu_true, R_long_true, phi_true, psi2_true, 
              h4_true, l5_true, h6_true, l6_true, gamma_true, 
@@ -139,9 +139,9 @@ mcmc_samples <- 10000
 mu_priormean <- 0
 mu_priorvar <- 100^2
 sig_priora <- 3
-sig_priorb <- 2
+sig_priorb <- 1/2
 psi_priora <- 3
-psi_priorb <- 2
+psi_priorb <- 1/2
 phi_priormean <- 0
 phi_priorvar <- 1
 gam_priormean <- 0
@@ -149,7 +149,7 @@ gam_priorvar <- 1
 del_priormean <- 0
 del_priorvar <- 1
 tau_priora <- 3
-tau_priorb <- 2
+tau_priorb <- 1/2
 
 #############
 # Parameters
@@ -202,14 +202,14 @@ CASE<-rep(NA, mcmc_samples)
 #################
 
 mu[[1]] <- rep(mean(Y_long), 6)
-psi2[[1]] <- rinvgamma(6, shape=psi_priora, scale=psi_priorb)
-sig2[[1]] <- rinvgamma(6, shape=sig_priora, scale=sig_priorb)
+psi2[[1]] <- rinvgamma(6, psi_priora, psi_priorb)
+sig2[[1]] <- rinvgamma(6, sig_priora, sig_priorb)
 phi[[1]] <- matrix(runif(6*(p+2), 0, 1), nrow=p+2, ncol=6)
 phi[[1]][5:6,1:3] <- 0
 phi[[1]][6,4:5] <- 0
 
 delta[[1]] <- matrix(rnorm(4*2, del_priormean, sqrt(del_priorvar)), nrow=4)
-tau2[[1]] <- rinvgamma(4, shape=tau_priora, scale=tau_priorb)
+tau2[[1]] <- rinvgamma(4, tau_priora, tau_priorb)
 
 logit_h4[[1]] <- rnorm(sum(N), crossprod(t(v_long), delta[[1]][1,]), sqrt(tau2[[1]][1]))
 logit_l5[[1]] <- rnorm(sum(N), crossprod(t(v_long), delta[[1]][2,]), sqrt(tau2[[1]][2]))

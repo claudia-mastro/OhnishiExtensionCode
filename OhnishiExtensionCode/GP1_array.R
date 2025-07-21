@@ -10,7 +10,7 @@ args <- commandArgs(trailingOnly = TRUE)
 id <- as.integer(args[1])
 print(id)
 source("~/OhnishiExtensionCode/Data_Simulation_GP.R")
-v <- "GP1"
+v <- "GP1_lowsd"
 #########
 #Function
 #########
@@ -231,23 +231,24 @@ for (w in 1:nrow(W)) {
 ####################
 #Metropolis Settings
 ####################
-metrop_sd_c <- rep(0.5, 4)
+metrop_sd_c <- rep(0.2, 4)
 
 acctot_c <- rep(1, 4)
 
-metrop_sd_alpha <- matrix(0.50, nrow = 5, ncol = 2)
+metrop_sd_alpha <- matrix(0.20, nrow = 5, ncol = 2)
+metrop_sd_alpha[,2] <- 0.05
 acctot_alpha <- matrix(1, nrow = 5, ncol = 2)
 
-metrop_sd_h0 <- rep(1.00, times = sum(N))
+metrop_sd_h0 <- rep(0.5, times = sum(N))
 acctot_h0 <- rep(1, times = sum(N))
 
-metrop_sd_l0 <- rep(1.00, times = sum(N))
+metrop_sd_l0 <- rep(0.5, times = sum(N))
 acctot_l0 <- rep(1, times = sum(N))
 
-metrop_sd_h1 <- rep(1.00, times = sum(N))
+metrop_sd_h1 <- rep(0.5, times = sum(N))
 acctot_h1 <- rep(1, times = sum(N))
 
-metrop_sd_l1 <- rep(1.00, times = sum(N))
+metrop_sd_l1 <- rep(0.5, times = sum(N))
 acctot_l1 <- rep(1, times = sum(N))
 
 ###################

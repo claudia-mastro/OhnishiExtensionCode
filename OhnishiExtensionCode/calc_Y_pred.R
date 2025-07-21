@@ -1,48 +1,26 @@
 library(DescTools)
+library(mnormt)
+library(matrixStats)
+library(LaplacesDemon)
+library(truncnorm)
+library(Matrix)
 
-v <- "GP2_4.15_ERT"
+v <- "GP2"
 
-Y_pred <- matrix(NA, nrow=500, ncol=200)
-for (j in 1:200) {
-  R <- readRDS(paste0("~/project/OhnishiExtension/Results/", v, "/R", j, ".rds"))
-  mu <- readRDS(paste0("~/project/OhnishiExtension/Results/", v, "/mu", j, ".rds"))
-  theta <- readRDS(paste0("~/project/OhnishiExtension/Results/", v, "/theta", j, ".rds"))
-  for (i in 1:500) {
-    Ri <- Mode(unlist(lapply(R, '[[', i))[5000:10000])
-    if (length(Ri)>1) {
-      Ri <- Ri[1]
-    }
-    if (is.na(Ri)) {
-      Ri <- mean(unlist(lapply(R, '[[', i))[5000:10000])
-    }
-    mui <- mean(unlist(lapply(mu, '[[', Ri))[5000:10000])
-    thetai <- mean(unlist(lapply(theta, function(x) x[i, Ri]))[5000:10000])
-    
-    Y_pred[i,j] <- mui + thetai
-  }
-}
-
-Y_bias <- matrix(NA, nrow=500, ncol=200)
-for (i in 1:200) {
+Y_data <- matrix(NA, nrow=500, ncol=500)
+for (i in 1:500) {
   id <- i
-  source("~/project/OhnishiExtension/JWCode/Data_Simulation_GP2.R")
-  Y_bias[,i] <- (Y_pred[,i] - Y_long)/Y_long * 100
-}
-round(mean(colMeans(Y_bias)), 2)
-
-Y_data <- matrix(NA, nrow=500, ncol=200)
-for (i in 163:200) {
-  id <- i
-  source("~/project/OhnishiExtension/JWCode/Data_Simulation_GP2.R")
+  source("~/OhnishiExtensionCode/Data_Simulation_GP2.R")
   Y_data[,i] <- Y_long
 }
-saveRDS(Y_data, paste0("~/project/OhnishiExtension/Results/", v, "/Y_true.RDs"))
+saveRDS(Y_data, paste0("~/palmer_scratch/OhnishiExtension/Results/", v, "/Y_true.RDs"))
 
-Y_bias <- matrix(NA, nrow=500, ncol=200)
-for (j in 1:200) {
-  R <- readRDS(paste0("~/project/OhnishiExtension/Results/", v, "/R", j, ".rds"))
-  mu <- readRDS(paste0("~/project/OhnishiExtension/Results/", v, "/mu", j, ".rds"))
-  theta <- readRDS(paste0("~/project/OhnishiExtension/Results/", v, "/theta", j, ".rds"))
+Y_bias <- matrix(NA, nrow=500, ncol=500)
+for (j in 285:500) {
+  print(j)
+  R <- readRDS(paste0("~/palmer_scratch/OhnishiExtension/Results/", v, "/R", j, ".rds"))
+  mu <- readRDS(paste0("~/palmer_scratch/OhnishiExtension/Results/", v, "/mu", j, ".rds"))
+  theta <- readRDS(paste0("~/palmer_scratch/OhnishiExtension/Results/", v, "/theta", j, ".rds"))
   for (i in 1:500) {
     Ri <- unlist(lapply(R, '[[', i))[5000:10000]
     mui <- matrix(unlist(mu), ncol=6, byrow = TRUE)[5000:10000,]

@@ -7,7 +7,7 @@ source("~/OhnishiExtensionCode/effects.R")
 ################
 #Global Settings
 ################
-J<-20
+J<-40
 N<-rep(25,
        times = J)
 Ns <- list(0)
@@ -218,11 +218,11 @@ theta_true <- cbind(rmnorm(1, -4, varcov=Sigma_true[[1]]*psi2_true[1]),
 
 mu_true <- c(12, -10, 8, -4, 4, -2)
 
-sigma2_true <- runif(6)
+sigma2_true <- runif(1)
 
 Y_long <- rmnorm(1,
                  mu_true[R_long_true] + theta_true[cbind(seq_along(R_long_true), R_long_true)],
-                 varcov=diag(sigma2_true[R_long_true]))
+                 varcov=diag(sum(N))*sigma2_true)
 
 Y<-list(0)
 Y[[1]]<-Y_long[1:N[1]]

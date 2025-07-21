@@ -6,7 +6,7 @@ library(Matrix)
 args <- commandArgs(trailingOnly = TRUE)
 i <- as.integer(args[1])
 id <- i
-v <- "GP2"
+v <- "GP2_N1000"
 source("~/OhnishiExtensionCode/effects.R")
 
 burnin <- 5000
@@ -18,6 +18,8 @@ bias_CADE <- rep(NA, length(iters))
 bias_CASE <- rep(NA, length(iters))
 abs_CADE <- rep(NA, length(iters))
 abs_CASE <- rep(NA, length(iters))
+CADE <- rep(NA, length(iters))
+CASE <- rep(NA, length(iters))
 id <- i
 print(i)
 source("~/OhnishiExtensionCode/Data_Simulation_GP2.R")
@@ -48,6 +50,8 @@ for (s in iters) {
   j <- j+1
   est <- CADE.CASE(0.8, 0.4, 0.8, 0, R[[s]], h4[[s]], l5[[s]], h6[[s]], l6[[s]], 
                    phi[[s]], theta[[s]], mu[[s]], sigma2[[s]], psi2[[s]])
+  CADE[j] <- est[[1]]
+  CASE[j] <- est[[2]]
   bias_CADE[j] <- (est[[1]]-eff[[1]])/abs(eff[[1]])*100
   bias_CASE[j] <- (est[[2]]-eff[[2]])/abs(eff[[2]])*100
   abs_CADE[j] <- (est[[1]]-eff[[1]])
@@ -56,5 +60,7 @@ for (s in iters) {
 }
 saveRDS(bias_CADE, paste0("~/palmer_scratch/OhnishiExtension/Results/", v, "/CADE_pbias", id, ".rds"))
 saveRDS(bias_CASE, paste0("~/palmer_scratch/OhnishiExtension/Results/", v, "/CASE_pbias", id, ".rds"))
-saveRDS(bias_CADE, paste0("~/palmer_scratch/OhnishiExtension/Results/", v, "/CADE_bias", id, ".rds"))
-saveRDS(bias_CASE, paste0("~/palmer_scratch/OhnishiExtension/Results/", v, "/CASE_bias", id, ".rds"))
+saveRDS(abs_CADE, paste0("~/palmer_scratch/OhnishiExtension/Results/", v, "/CADE_bias", id, ".rds"))
+saveRDS(abs_CASE, paste0("~/palmer_scratch/OhnishiExtension/Results/", v, "/CASE_bias", id, ".rds"))
+saveRDS(CADE, paste0("~/palmer_scratch/OhnishiExtension/Results/", v, "/CADE", id, ".rds"))
+saveRDS(CASE, paste0("~/palmer_scratch/OhnishiExtension/Results/", v, "/CASE", id, ".rds"))

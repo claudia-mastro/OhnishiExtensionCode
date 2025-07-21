@@ -6,13 +6,13 @@ library(Matrix)
 args <- commandArgs(trailingOnly = TRUE)
 i <- as.integer(args[1])
 
-v <- "GP2_fixphi"
+v <- "GP2_N1000"
 id <- i
-source("~/project/OhnishiExtension/JWCode/Data_Simulation_GP2.R")
+source("~/OhnishiExtensionCode/Data_Simulation_GP2.R")
 
-mu <- readRDS(paste0("~/project/OhnishiExtension/Results/", v, "/mu", id, ".rds"))
-sig2 <- readRDS(paste0("~/project/OhnishiExtension/Results/", v, "/sig2", id, ".rds"))
-psi2 <- readRDS(paste0("~/project/OhnishiExtension/Results/", v, "/psi2", id, ".rds"))
+mu <- readRDS(paste0("~/palmer_scratch/OhnishiExtension/Results/", v, "/mu", id, ".rds"))
+sig2 <- readRDS(paste0("~/palmer_scratch/OhnishiExtension/Results/", v, "/sig2", id, ".rds"))
+psi2 <- readRDS(paste0("~/palmer_scratch/OhnishiExtension/Results/", v, "/psi2", id, ".rds"))
 
 bias_mu <- bias_sig2 <- bias_psi2 <- rep(NA, 6)
 for(k in 1:6) {
@@ -20,13 +20,13 @@ for(k in 1:6) {
                           function(m) (m-mu_true[k])/abs(mu_true[k])*100))
   
   bias_sig2[k] <- mean(sapply((unlist(lapply(sig2, function(x) x[k]))[5000:10000]),
-                           function(s) (s-sigma2_true[k])/abs(sigma2_true[k])*100))
+                           function(s) (s-sigma2_true)/abs(sigma2_true)*100))
   
   bias_psi2[k] <- mean(sapply((unlist(lapply(psi2, function(x) x[k]))[5000:10000]),
                               function(p) (p-psi2_true[k])/abs(psi2_true[k])*100))
 }
 
-delta <- readRDS(paste0("~/project/OhnishiExtension/Results/", v, "/delta", id, ".rds"))
+delta <- readRDS(paste0("~/palmer_scratch/OhnishiExtension/Results/", v, "/delta", id, ".rds"))
 bias_delta_h40 <- mean(sapply(unlist(lapply(delta, function(x) x[1,1]))[5000:10000],
                           function(d) (d - delta_h4_true[1])/abs(delta_h4_true[1])*100))
 bias_delta_h41 <- mean(sapply(unlist(lapply(delta, function(x) x[1,2]))[5000:10000],
@@ -44,7 +44,7 @@ bias_delta_l60 <- mean(sapply(unlist(lapply(delta, function(x) x[4,1]))[5000:100
 bias_delta_l61 <- mean(sapply(unlist(lapply(delta, function(x) x[4,2]))[5000:10000],
                               function(d) (d - delta_l6_true[2])/abs(delta_l6_true[2])*100))
 
-tau2 <- readRDS(paste0("~/project/OhnishiExtension/Results/", v, "/tau2", id, ".rds"))
+tau2 <- readRDS(paste0("~/palmer_scratch/OhnishiExtension/Results/", v, "/tau2", id, ".rds"))
 bias_tau2_h4 <- mean(sapply(unlist(lapply(delta, function(x) x[1]))[5000:10000],
                             function(t) (t - tau2_h4_true)/abs(tau2_h4_true)*100))
 bias_tau2_l5 <- mean(sapply(unlist(lapply(delta, function(x) x[2]))[5000:10000],
@@ -54,7 +54,7 @@ bias_tau2_h6 <- mean(sapply(unlist(lapply(delta, function(x) x[3]))[5000:10000],
 bias_tau2_l6 <- mean(sapply(unlist(lapply(delta, function(x) x[4]))[5000:10000],
                             function(t) (t - tau2_l6_true)/abs(tau2_l6_true)*100))
 
-gamma <- readRDS(paste0("~/project/OhnishiExtension/Results/", v, "/gamma", id, ".rds"))
+gamma <- readRDS(paste0("~/palmer_scratch/OhnishiExtension/Results/", v, "/gamma", id, ".rds"))
 bias_gamma <- matrix(NA, nrow=5, ncol=2)
 for (r in 1:5) {
   for (c in 1:2) {
@@ -66,7 +66,7 @@ bias_gamma <- c(t(bias_gamma))
 
 phi <- rep(NA, 4*3 + 5 + 5 + 6)
 phi_sd <- rep(NA, 4*3 + 5 + 5 + 6)
-phii <- readRDS(paste0("~/project/OhnishiExtension/Results/", v, "/phi", id, ".rds"))
+phii <- readRDS(paste0("~/palmer_scratch/OhnishiExtension/Results/", v, "/phi", id, ".rds"))
 phi[1:4] <- rowMeans(apply(do.call(rbind, lapply(phii, function(x) x[,1]))[5000:10000,1:4], 1,
                   function(p) (p - phi_true[[1]])/abs(phi_true[[1]])*100))
 phi[5:8] <- rowMeans(apply(do.call(rbind, lapply(phii, function(x) x[,2]))[5000:10000,1:4], 1,
@@ -82,8 +82,8 @@ phi[23:28] <- rowMeans(apply(do.call(rbind, lapply(phii, function(x) x[,6]))[500
 
 
 theta_bias <- rep(NA, sum(N))
-theta <- readRDS(paste0("~/project/OhnishiExtension/Results/", v, "/theta", j, ".rds"))
-R <- readRDS(paste0("~/project/OhnishiExtension/Results/", v, "/R", j, ".rds"))
+theta <- readRDS(paste0("~/palmer_scratch/OhnishiExtension/Results/", v, "/theta", j, ".rds"))
+R <- readRDS(paste0("~/palmer_scratch/OhnishiExtension/Results/", v, "/R", j, ".rds"))
 for (j in 1:500) {
   Ri <- unlist(lapply(R, function(x) x[j]))
   thetai_bias <- rep(NA, 1000)
@@ -121,4 +121,4 @@ out_table <- c(bias_mu, bias_sig2, bias_psi2, bias_delta_h40, bias_delta_h41,
 out_table <- data.frame(out_table)
 rownames(out_table) <- names
 
-saveRDS(out_table, paste0("~/project/OhnishiExtension/Results/", v, "/param_bias", id, ".rds"))
+saveRDS(out_table, paste0("~/palmer_scratch/OhnishiExtension/Results/", v, "/param_bias", id, ".rds"))

@@ -1,8 +1,7 @@
 ##############
 #Seed
 ##############
-set.seed(id)
-
+set.seed(1222)
 ################
 #Global Settings
 ################
@@ -47,7 +46,13 @@ for(j in 2:J){
 ###########
 #Predictors
 ###########
-x_long<-rnorm(n = sum(N))
+x_long<-c(rnorm(n = sum(N)/6, mean=-12, sd=0.5),
+          rnorm(n = sum(N)/6, mean=-8, sd=0.5),
+          rnorm(n = sum(N)/6, mean=-4, sd=1),
+          rnorm(n = sum(N)/6, mean=4, sd=1),
+          rnorm(n = sum(N)/6, mean=8, sd=0.5),
+          rnorm(n = sum(N)/6, mean=12, sd=0.5))
+x_long <- sample(x_long, sum(N), replace=TRUE)
 q_long<-cbind(1, x_long)
 v_long<-q_long
 
@@ -80,9 +85,11 @@ sigma2_true <- c(0.02, 0.04, 0.06, 0.08, 0.10, 0.12)
 alpha_true<-matrix(NA,
                    nrow = 6,
                    ncol = 2)
-for(k in 1:5){
-   alpha_true[k,]<-rnorm(n = 2)
-   }
+alpha_true[1,] <- c(-34, 44)
+alpha_true[2,] <- c(110, 20)
+alpha_true[3,] <- c(110, 22)
+alpha_true[4,] <- c(36, 38)
+alpha_true[5,] <- c(-70, -6)
 alpha_true[6,]<-0.00
 
 pi_mat_temp<-matrix(NA,
@@ -111,28 +118,28 @@ for(j in 2:J){
    G_true[[j]]<-G_long_true[(1 + sum(N[1:(j-1)])):sum(N[1:j])]
    }
 
-delta_h0_true<-rnorm(n = 2)
+delta_h0_true<-c(-0.3, 0.1)
 tau2_h0_true<-0.01
 logit_h0_true<-rnorm(n = sum(N),
                      mean = (v_long%*%delta_h0_true),
                      sd = sqrt(tau2_h0_true))
 h0_true<-1.00/(1.00 + exp(-logit_h0_true))
 
-delta_l0_true<-rnorm(n = 2)
+delta_l0_true<-c(-0.4, 0.2)
 tau2_l0_true<-0.01
 logit_l0_true<-rnorm(n = sum(N),
                      mean = (v_long%*%delta_l0_true),
                      sd = sqrt(tau2_l0_true))
 l0_true<-1.00/(1.00 + exp(-logit_l0_true))
 
-delta_h1_true<-rnorm(n = 2)
+delta_h1_true<-c(-0.12, 0.04)
 tau2_h1_true<-0.01
 logit_h1_true<-rnorm(n = sum(N),
                      mean = (v_long%*%delta_h1_true),
                      sd = sqrt(tau2_h1_true))
 h1_true<-1.00/(1.00 + exp(-logit_h1_true))
 
-delta_l1_true<-rnorm(n = 2)
+delta_l1_true<-c(0.7, -0.1)
 tau2_l1_true<-0.01
 logit_l1_true<-rnorm(n = sum(N),
                      mean = (v_long%*%delta_l1_true),
@@ -153,6 +160,7 @@ for(j in 2:J){
 #####
 #Data
 #####
+set.seed(id)
 D<-list(0)
 S<-rep(NA,
        times = J)

@@ -227,7 +227,7 @@ CADE.CASE <- function(alpha, S, Sp, Z, R, h4, l5, h6, l6, phi, theta, mu, sig2, 
         theta0 <- rmnorm(1, mean = theta0_mean, varcov = theta0_var)
         Y0[ij] <- rnorm(n = 1,
                         mean = mu[R[ij]] + theta0,
-                        sd = sqrt(sig2[R[ij]]))
+                        sd = 0)
         
         Sig1 <- calcSigma(1+sum(N), phi[,R[ij]], rbind(W1[ij,], Whl[[R[ij]]]))
         theta1_mean <- Sig1[1:1, 2:(sum(N)+1)]%*%
@@ -240,7 +240,7 @@ CADE.CASE <- function(alpha, S, Sp, Z, R, h4, l5, h6, l6, phi, theta, mu, sig2, 
         theta1 <- rmnorm(1, mean = theta1_mean, varcov = theta1_var)
         Y1[ij] <- rnorm(n = 1,
                         mean = mu[R[ij]] + theta1,
-                        sd = sqrt(sig2[R[ij]]))
+                        sd = 0)
         
         Sig0p <- calcSigma(1+sum(N), phi[,R[ij]], rbind(W0p[ij,], Whl[[R[ij]]]))
         theta0p_mean <- Sig0p[1:1, 2:(sum(N)+1)]%*%
@@ -253,7 +253,7 @@ CADE.CASE <- function(alpha, S, Sp, Z, R, h4, l5, h6, l6, phi, theta, mu, sig2, 
         theta0p <- rmnorm(1, mean = theta0p_mean, varcov = theta0p_var)
         Y0p[ij] <- rnorm(n = 1,
                          mean = mu[R[ij]] + theta0p,
-                         sd = sqrt(sig2[R[ij]]))
+                         sd = 0)
       }
     }
   }
@@ -329,18 +329,18 @@ CADE.CASE.ERT <- function(alpha, S, Sp, Z, R, h4, l5, h6, l6, phi, theta, mu, si
         theta0 <- rmnorm(1, mean = 0, varcov = psi2[R[ij]]*Sig0)
         Y0[ij] <- rnorm(n = 1,
                         mean = mu[R[ij]] + theta0[ij],
-                        sd = sqrt(sig2[R[ij]]))
+                        sd = 0)
         Sig1 <- updateSigma(sum(N), phi[,R[ij]], W1, Sigma[[R[ij]]], ij)
         theta1 <- rmnorm(1, mean = 0, varcov = psi2[R[ij]]*Sig1)
         Y1[ij] <- rnorm(n = 1,
                         mean = mu[R[ij]] + theta1[ij],
-                        sd = sqrt(sig2[R[ij]]))
+                        sd = 0)
         
         Sig0p <- updateSigma(sum(N), phi[,R[ij]], W0p, Sigma[[R[ij]]], ij)
         theta0p <- rmnorm(1, mean = 0, varcov = psi2[R[ij]]*Sig0p)
         Y0p[ij] <- rnorm(n = 1,
                          mean = mu[R[ij]] + theta0p[ij],
-                         sd = sqrt(sig2[R[ij]]))
+                         sd = 0)
       }
     }
   }

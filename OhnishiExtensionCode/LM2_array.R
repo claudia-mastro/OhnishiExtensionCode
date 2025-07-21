@@ -12,7 +12,7 @@ Nj <- as.integer(args[3])
 print(Nj)
 nalpha <- as.integer(args[4])
 print(nalpha)
-v <- paste0("LM2_sepN", J*Nj, "_IG23")
+v <- paste0("LM2_new", J*Nj, "_2")
 #v <- "LM_5.5_nospace"
 print(v)
 source("~/OhnishiExtensionCode/Data_Simulation_LM2.R")
@@ -36,8 +36,8 @@ set.seed(id)
 ################
 #Global Settings
 ################
-mcmc_samples<-50000
-burnin <- 25000
+mcmc_samples<-100000
+burnin <- 50000
 thin <- 10
 iters <- burnin:mcmc_samples
 iters <- iters[seq(1, mcmc_samples-burnin + thin, thin)]
@@ -88,6 +88,7 @@ tau2_l1 <- list(tau2_l1)[rep(1,mcmc_samples)]
 
 CADE<-rep(NA, mcmc_samples)
 CASE<-rep(NA, mcmc_samples)
+pC <- rep(NA, mcmc_samples)
 
 pi_mat <- array(dim=c(mcmc_samples, sum(N), 6))
 
@@ -179,20 +180,26 @@ G_a_long[(G_long == 3) | ((G_long == 4) & (a_long >= h0[[1]])) | ((G_long == 5) 
 ####################
 #Metropolis Settings
 ####################
-metrop_sd_alpha <- matrix(0.50, nrow = 5, ncol = 2)
-acctot_alpha <- matrix(1, nrow = 5, ncol = 2)
+metrop_sd_alpha <- matrix(0.20, nrow = 5, ncol = 2)
+metrop_sd_alpha[,2] <- 0.05
+acctot_alpha <- matrix(NA, nrow = 5, ncol = 2)
+acctot_alpha <- list(acctot_alpha)[rep(1,mcmc_samples)]
 
 metrop_sd_h0 <- rep(1.00, times = sum(N))
 acctot_h0 <- rep(1, times = sum(N))
+acctot_h0 <- list(acctot_h0)[rep(1,mcmc_samples)]
 
 metrop_sd_l0 <- rep(1.00, times = sum(N))
 acctot_l0 <- rep(1, times = sum(N))
+acctot_l0 <- list(acctot_l0)[rep(1,mcmc_samples)]
 
 metrop_sd_h1 <- rep(1.00, times = sum(N))
 acctot_h1 <- rep(1, times = sum(N))
+acctot_h1 <- list(acctot_h1)[rep(1,mcmc_samples)]
 
 metrop_sd_l1 <- rep(1.00, times = sum(N))
 acctot_l1 <- rep(1, times = sum(N))
+acctot_l1 <- list(acctot_l1)[rep(1,mcmc_samples)]
 
 ###################
 #Main Sampling Loop
@@ -312,7 +319,7 @@ for(s in 2:mcmc_samples){
         accept<-0
       }
       
-      acctot_alpha[k,l] <- acctot_alpha[k,l] + accept
+      acctot_alpha[[s]][k,l] <- accept
     }
   }
   
@@ -351,7 +358,7 @@ for(s in 2:mcmc_samples){
   G_a_long[ratio < uni_draw] <- G_a_long_old[ratio < uni_draw]
   accept[ratio < uni_draw] <- 0
   
-  acctot_h0 <- acctot_h0 + accept
+  acctot_h0[[s]] <- + accept
   
   ###
   #l0
@@ -388,7 +395,7 @@ for(s in 2:mcmc_samples){
   G_a_long[ratio < uni_draw] <- G_a_long_old[ratio < uni_draw]
   accept[ratio < uni_draw] <- 0
   
-  acctot_l0<-acctot_l0 + accept
+  acctot_l0[[s]] <- accept
   
   ###
   #h1
@@ -425,7 +432,7 @@ for(s in 2:mcmc_samples){
   G_a_long[ratio < uni_draw] <- G_a_long_old[ratio < uni_draw]
   accept[ratio < uni_draw] <- 0
   
-  acctot_h1 <- acctot_h1 + accept
+  acctot_h1[[s]] <- accept
   
   ###
   #l1
@@ -462,7 +469,7 @@ for(s in 2:mcmc_samples){
   G_a_long[ratio < uni_draw] <- G_a_long_old[ratio < uni_draw]
   accept[ratio < uni_draw] <- 0
   
-  acctot_l1 <- acctot_l1 + accept
+  acctot_l1[[s]] <- accept
   
   #########
   #delta_h0
@@ -633,6 +640,7 @@ for(s in 2:mcmc_samples){
     }
     CADE[s] <- sum(C*(Y1-Y0))/sum(C)
     CASE[s] <- sum(C*(Y0-Y0p))/sum(C)
+    pC[s] <- mean(C)
   }
 }
 print("saving")
@@ -676,3 +684,16 @@ saveRDS(tau2_l1, paste0("/home/cim24/palmer_scratch/OhnishiExtension/Results/", 
                         id, ".rds"))
 saveRDS(pi_mat, paste0("/home/cim24/palmer_scratch/OhnishiExtension/Results/", v,"/pi",
                         id, ".rds"))
+saveRDS(acctot_alpha, paste0("/home/cim24/palmer_scratch/OhnishiExtension/Results/", v,"/acctot_alpha",
+                       id, ".rds"))
+saveRDS(acctot_h0, paste0("/home/cim24/palmer_scratch/OhnishiExtension/Results/", v,"/acctot_h0",
+                             id, ".rds"))
+saveRDS(acctot_l0, paste0("/home/cim24/palmer_scratch/OhnishiExtension/Results/", v,"/acctot_l0",
+                          id, ".rds"))
+saveRDS(acctot_h1, paste0("/home/cim24/palmer_scratch/OhnishiExtension/Results/", v,"/acctot_h1",
+                             id, ".rds"))
+saveRDS(acctot_l1, paste0("/home/cim24/palmer_scratch/OhnishiExtension/Results/", v,"/acctot_l1",
+                          id, ".rds"))
+saveRDS(pC, paste0("/home/cim24/palmer_scratch/OhnishiExtension/Results/", v,"/propcomp",
+                          id, ".rds"))
+                          
