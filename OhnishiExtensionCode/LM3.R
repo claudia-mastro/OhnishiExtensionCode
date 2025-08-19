@@ -130,13 +130,11 @@ l[[1]] <- laml0[[1]]*etal[[1]]^laml1[[1]]
 ####################
 #Metropolis Settings
 ####################
-metrop_sd_h <- 0.1
-acctot_h <- rep(1, times = sum(N))
-acctot_h <- list(acctot_h)[rep(1,mcmc_samples)]
+metrop_sd_h <- rep(0.1, sum(N))
+acctot_h <- matrix(1, nrow=mcmc_samples, ncol=sum(N))
 
-metrop_sd_l <- 0.1
-acctot_l <- rep(1, times = sum(N))
-acctot_l <- list(acctot_l)[rep(1,mcmc_samples)]
+metrop_sd_l <- rep(0.1, sum(N))
+acctot_l <- matrix(1, nrow=mcmc_samples, ncol=sum(N))
 
 W <- cbind(1, S_long, T_long, Z_long, h[[1]], l[[1]], 
            S_long*h[[1]], S_long*l[[1]],
@@ -154,6 +152,7 @@ for(s in 2:mcmc_samples){
   cov_beta <- chol2inv(chol(crossprod(W)/sigma2[[s-1]] + diag(12)/sigma2_beta))
   mu_beta <- cov_beta%*%(crossprod(W, Y_long))/sigma2[[s-1]]
   beta[[s]] <- rmnorm(n = 1, mean = mu_beta, varcov = cov_beta)
+  #beta[[s]] <- beta_true
   
   rate <- crossprod(Y_long - W%*%beta[[s]])/2.00 + b_sigma2
   shape <- length(Y_long)/2.00 + a_sigma2
@@ -187,8 +186,8 @@ for(s in 2:mcmc_samples){
                    S_long*etah[[s-1]]^lamh1[[s-1]], S_long*l[[s-1]],
                    T_long*etah[[s-1]]^lamh1[[s-1]], T_long*l[[s-1]],
                    Z_long*etah[[s-1]]^lamh1[[s-1]], Z_long*l[[s-1]])
-  d1 <- dnorm(Y_long, W1_temp%*%beta[[s]], sqrt(sigma2[[s]]))
-  d0 <- dnorm(Y_long, W0_temp%*%beta[[s]], sqrt(sigma2[[s]]))
+  d1 <- dnorm(Y_long, W1_temp%*%beta[[s]], sqrt(sigma2[[s]]))+1e-16
+  d0 <- dnorm(Y_long, W0_temp%*%beta[[s]], sqrt(sigma2[[s]]))+1e-16
 
   lamh0[[s]] <- sapply((d1*ph0p)/(d1*ph0p + d0*(1-ph0p)), function(p) rbinom(1, 1, p))
 
@@ -203,8 +202,8 @@ for(s in 2:mcmc_samples){
                    S_long*lamh0[[s]]*etah[[s-1]], S_long*l[[s-1]],
                    T_long*lamh0[[s]]*etah[[s-1]], T_long*l[[s-1]],
                    Z_long*lamh0[[s]]*etah[[s-1]], Z_long*l[[s-1]])
-  d1 <- dnorm(Y_long, W1_temp%*%beta[[s]], sqrt(sigma2[[s]]))
-  d0 <- dnorm(Y_long, W0_temp%*%beta[[s]], sqrt(sigma2[[s]]))
+  d1 <- dnorm(Y_long, W1_temp%*%beta[[s]], sqrt(sigma2[[s]]))+1e-16
+  d0 <- dnorm(Y_long, W0_temp%*%beta[[s]], sqrt(sigma2[[s]]))+1e-16
   lamh1[[s]] <- sapply((d1*ph1p)/(d1*ph1p + d0*(1-ph1p)), function(p) rbinom(1, 1, p))
 
   pl0p <- (pl0[[s]]^(1-(Z_long==1 & D_long==0)))^(1-(lamh0[[s]]==1 & lamh1[[s]]==0))
@@ -218,8 +217,8 @@ for(s in 2:mcmc_samples){
                    S_long*lamh0[[s]]*etah[[s-1]]^lamh1[[s]], S_long*etal[[s-1]]^laml1[[s-1]],
                    T_long*lamh0[[s]]*etah[[s-1]]^lamh1[[s]], T_long*etal[[s-1]]^laml1[[s-1]],
                    Z_long*lamh0[[s]]*etah[[s-1]]^lamh1[[s]], Z_long*etal[[s-1]]^laml1[[s-1]])
-  d1 <- dnorm(Y_long, W1_temp%*%beta[[s]], sqrt(sigma2[[s]]))
-  d0 <- dnorm(Y_long, W0_temp%*%beta[[s]], sqrt(sigma2[[s]]))
+  d1 <- dnorm(Y_long, W1_temp%*%beta[[s]], sqrt(sigma2[[s]]))+1e-16
+  d0 <- dnorm(Y_long, W0_temp%*%beta[[s]], sqrt(sigma2[[s]]))+1e-16
   laml0[[s]] <- sapply((d1*pl0p)/(d1*pl0p + d0*(1-pl0p)), function(p) rbinom(1, 1, p))
 
   pl1p <- (1-(lamh0[[s]]==1 & lamh1[[s]]==0))*(pl1[[s]]^(1-(Z_long==0 & D_long==1)))
@@ -233,9 +232,9 @@ for(s in 2:mcmc_samples){
                    S_long*lamh0[[s]]*etah[[s-1]]^lamh1[[s]], S_long*laml0[[s]]*etal[[s-1]],
                    T_long*lamh0[[s]]*etah[[s-1]]^lamh1[[s]], T_long*laml0[[s]]*etal[[s-1]],
                    Z_long*lamh0[[s]]*etah[[s-1]]^lamh1[[s]], Z_long*laml0[[s]]*etal[[s-1]])
-  d1 <- dnorm(Y_long, W1_temp%*%beta[[s]], sqrt(sigma2[[s]]))
-  d0 <- dnorm(Y_long, W0_temp%*%beta[[s]], sqrt(sigma2[[s]]))
-  laml1[[s]] <- sapply((d1*pl1p)/(d1*pl1p + d0*(1-pl1p)), function(p) rbinom(1, 1, p))
+  d1 <- dnorm(Y_long, W1_temp%*%beta[[s]], sqrt(sigma2[[s]]))+1e-16
+  d0 <- dnorm(Y_long, W0_temp%*%beta[[s]], sqrt(sigma2[[s]]))+1e-16
+  laml1[[s]] <- sapply(abs((d1*pl1p)/(d1*pl1p + d0*(1-pl1p))), function(p) rbinom(1, 1, p))
 
   # lamh0[[s]] <- lamh0_true
   # lamh1[[s]] <- lamh1_true
@@ -260,7 +259,7 @@ for(s in 2:mcmc_samples){
 
       ## eta_h
       logit_etah_old[block] <- logit_etah[block]
-      logit_etah[block] <- rnorm(length(block), logit_etah_old[block], metrop_sd_h)
+      logit_etah[block] <- rnorm(length(block), logit_etah_old[block], metrop_sd_h[block])
       logit_etah[logit_etah > 709.7827] <- 709.7827
 
       etah_old[block] <- etah[[s-1]][block]
@@ -291,7 +290,7 @@ for(s in 2:mcmc_samples){
         etah[[s]][block] <- etah_old[block]
         h[[s]][block] <- h_old[block]
         W[block,] <- W_old[block,]
-        acctot_h[[s]][block] <- 0
+        acctot_h[s, block] <- 0
       }
     }
 
@@ -331,7 +330,7 @@ for(s in 2:mcmc_samples){
         etal[[s]][block] <- etal_old[block]
         l[[s]][block] <- l_old[block]
         W[block,] <- W_old[block,]
-        acctot_l[[s]][block] <- 0
+        acctot_l[s, block] <- 0
       }
     }
   }
@@ -345,7 +344,7 @@ for(s in 2:mcmc_samples){
 
       ##eta_h
       logit_etah_old[block] <- logit_etah[block]
-      logit_etah[block] <- rnorm(length(block), logit_etah_old[block], metrop_sd_h)
+      logit_etah[block] <- rnorm(length(block), logit_etah_old[block], metrop_sd_h[block])
       logit_etah[logit_etah > 709.7827] <- 709.7827
 
       etah_old[block] <- etah[[s-1]][block]
@@ -376,7 +375,7 @@ for(s in 2:mcmc_samples){
         etah[[s]][block] <- etah_old[block]
         h[[s]][block] <- h_old[block]
         W[block,] <- W_old[block,]
-        acctot_h[[s]][block] <- 0
+        acctot_h[s, block] <- 0
       }
     }
 
@@ -416,14 +415,14 @@ for(s in 2:mcmc_samples){
         etal[[s]][block] <- etal_old[block]
         l[[s]][block] <- l_old[block]
         W[block,] <- W_old[block,]
-        acctot_l[[s]][block] <- 0
+        acctot_l[s, block] <- 0
       }
     }
   }
 
 
-  ## Compliers
-  sub <- which(Z_long==D_long)
+  ## Complier/NT
+  sub <- which(Z_long==0 & D_long==0)
 
   if (length(sub) > 0) {
     sub <- sample(sub)
@@ -431,11 +430,11 @@ for(s in 2:mcmc_samples){
       block <- sub[start_idx:min(start_idx + block_size - 1, length(sub))]
       ##eta_h
       logit_etah_old[block] <- logit_etah[block]
-      logit_etah[block] <- rnorm(length(block), logit_etah_old[block], metrop_sd_h)
+      logit_etah[block] <- rnorm(length(block), logit_etah_old[block], metrop_sd_h[block])
       logit_etah[logit_etah > 709.7827] <- 709.7827
 
       etah_old[block] <- etah[[s-1]][block]
-      etah[[s]][block] <- (T_long[block]*exp(logit_etah[block]))/(1.00 + exp(logit_etah[block]))
+      etah[[s]][block] <- (exp(logit_etah[block]))/(1.00 + exp(logit_etah[block]))
 
 
       h_old[block] <- h[[s-1]][block]
@@ -463,7 +462,7 @@ for(s in 2:mcmc_samples){
         etah[[s]][block] <- etah_old[block]
         h[[s]][block] <- h_old[block]
         W[block,] <- W_old[block,]
-        acctot_h[[s]][block] <- 0
+        acctot_h[s, block] <- 0
       }
     }
 
@@ -476,7 +475,7 @@ for(s in 2:mcmc_samples){
       logit_etal[logit_etal > 709.7827] <- 709.7827
 
       etal_old[block] <- etal[[s-1]][block]
-      etal[[s]][block] <- (T_long[block] + exp(logit_etal[block]))/(1.00 + exp(logit_etal[block]))
+      etal[[s]][block] <- (max(T_long[block], etah[[s]][block]) + exp(logit_etal[block]))/(1.00 + exp(logit_etal[block]))
 
       l_old[block] <- l[[s-1]][block]
       l[[s]][block] <- laml0[[s]][block]*etal[[s]][block]^laml1[[s]][block]
@@ -503,7 +502,93 @@ for(s in 2:mcmc_samples){
         etal[[s]][block] <- etal_old[block]
         l[[s]][block] <- l_old[block]
         W[block,] <- W_old[block,]
-        acctot_l[[s]][block] <- 0
+        acctot_l[s, block] <- 0
+      }
+    }
+  }
+  
+  ## Complier/AT
+  sub <- which(Z_long==1 & D_long==1)
+  
+  if (length(sub) > 0) {
+    sub <- sample(sub)
+    for (start_idx in seq(1, length(sub), by = block_size)) {
+      block <- sub[start_idx:min(start_idx + block_size - 1, length(sub))]
+      ##eta_h
+      logit_etah_old[block] <- logit_etah[block]
+      logit_etah[block] <- rnorm(length(block), logit_etah_old[block], metrop_sd_h[block])
+      logit_etah[logit_etah > 709.7827] <- 709.7827
+      
+      etah_old[block] <- etah[[s-1]][block]
+      etah[[s]][block] <- (T_long[block]*exp(logit_etah[block]))/(1.00 + exp(logit_etah[block]))
+      
+      
+      h_old[block] <- h[[s-1]][block]
+      h[[s]][block] <- lamh0[[s]][block]*etah[[s]][block]^lamh1[[s]][block]
+      
+      W_old <- W
+      W[block,] <- cbind(1, S_long, T_long, Z_long, h[[s]], l[[s-1]],
+                         S_long*h[[s]], S_long*l[[s-1]],
+                         T_long*h[[s]], T_long*l[[s-1]],
+                         Z_long*h[[s]], Z_long*l[[s-1]])[block,]
+      
+      denom <- sum(dnorm(logit_etah_old[block], q_long[block,]%*%delta_h[[s-1]],
+                         sqrt(tau2_h[[s-1]]), log=TRUE) +
+                     dnorm(Y_long[block], W_old[block,]%*%beta[[s]], sqrt(sigma2[[s]]), log=TRUE))
+      
+      numer <- sum(dnorm(logit_etah[block], q_long[block,]%*%delta_h[[s-1]],
+                         sqrt(tau2_h[[s-1]]), log=TRUE) +
+                     dnorm(Y_long[block], W[block,]%*%beta[[s]], sqrt(sigma2[[s]]), log=TRUE))
+      
+      ratio <- numer - denom
+      uni_draw <- log(runif(1, min = 0.00, max = 1.00))
+      
+      if (ratio < uni_draw) {
+        logit_etah[block] <- logit_etah_old[block]
+        etah[[s]][block] <- etah_old[block]
+        h[[s]][block] <- h_old[block]
+        W[block,] <- W_old[block,]
+        acctot_h[s, block] <- 0
+      }
+    }
+    
+    for (start_idx in seq(1, length(sub), by = block_size)) {
+      block <- sub[start_idx:min(start_idx + block_size - 1, length(sub))]
+      
+      ##eta_l
+      logit_etal_old[block] <- logit_etal[block]
+      logit_etal[block] <- rnorm(length(block), logit_etal_old[block], metrop_sd_l)
+      logit_etal[logit_etal > 709.7827] <- 709.7827
+      
+      etal_old[block] <- etal[[s-1]][block]
+      etal[[s]][block] <- (etah[[s]][block] + exp(logit_etal[block]))/(1.00 + exp(logit_etal[block]))
+      
+      l_old[block] <- l[[s-1]][block]
+      l[[s]][block] <- laml0[[s]][block]*etal[[s]][block]^laml1[[s]][block]
+      
+      W_old <- W
+      W[block,] <- cbind(1, S_long, T_long, Z_long, h[[s]], l[[s]],
+                         S_long*h[[s]], S_long*l[[s]],
+                         T_long*h[[s]], T_long*l[[s]],
+                         Z_long*h[[s]], Z_long*l[[s]])[block,]
+      
+      denom <- sum(dnorm(logit_etal_old[block], q_long[block,]%*%delta_l[[s-1]],
+                         sqrt(tau2_l[[s-1]]), log=TRUE) +
+                     dnorm(Y_long[block], W_old[block,]%*%beta[[s]], sqrt(sigma2[[s]]), log=TRUE))
+      
+      numer <- sum(dnorm(logit_etal[block], q_long[block,]%*%delta_l[[s-1]],
+                         sqrt(tau2_l[[s-1]]), log=TRUE) +
+                     dnorm(Y_long[block], W[block,]%*%beta[[s]], sqrt(sigma2[[s]]), log=TRUE))
+      
+      ratio <- numer - denom
+      uni_draw <- log(runif(1, min = 0.00, max = 1.00))
+      
+      if (ratio < uni_draw) {
+        logit_etal[block] <- logit_etal_old[block]
+        etal[[s]][block] <- etal_old[block]
+        l[[s]][block] <- l_old[block]
+        W[block,] <- W_old[block,]
+        acctot_l[s, block] <- 0
       }
     }
   }
@@ -565,20 +650,14 @@ for(s in 2:mcmc_samples){
     CASE[which(iters==s)] <- effects[[2]]
   }
   if (s <= burnin & s%%100 ==0) {
-    acch <- mean(unlist(lapply(acctot_h, mean))[(s-100):s])
-    accl <- mean(unlist(lapply(acctot_l, mean))[(s-100):s])
+    acch <- colMeans(acctot_h[(s-100):s,])
+    accl <- colMeans(acctot_l[(s-100):s,])
+    
+    metrop_sd_h[acch < 0.15] <- metrop_sd_h[acch < 0.15]*0.9
+    metrop_sd_h[acch > 0.60] <- metrop_sd_h[acch > 0.60]*1.1
 
-    if (acch < 0.15) {
-      metrop_sd_h <- metrop_sd_h * 0.9
-    } else if (acch > 0.6) {
-      metrop_sd_h <- metrop_sd_h * 1.1
-    }
-
-    if (accl < 0.15) {
-      metrop_sd_l <- metrop_sd_l * 0.9
-    } else if (accl > 0.6) {
-      metrop_sd_l <- metrop_sd_l * 1.1
-    }
+    metrop_sd_l[accl < 0.15] <- metrop_sd_l[accl < 0.15]*0.9
+    metrop_sd_l[accl > 0.60] <- metrop_sd_l[accl > 0.60]*1.1
   }
 }
 print("saving")
