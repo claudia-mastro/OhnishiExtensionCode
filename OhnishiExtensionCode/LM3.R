@@ -14,7 +14,7 @@ Nj <- as.integer(args[3])
 print(Nj)
 nalpha <- as.integer(args[4])
 print(nalpha)
-v <- paste0("LM3_8.16")
+v <- paste0("LM3_8.27.quicksd")
 print(v)
 source("~/OhnishiExtensionCode/effects_LM3.R")
 source("~/OhnishiExtensionCode/Data_Simulation_LM3.R")
@@ -41,13 +41,12 @@ set.seed(id)
 mcmc_samples<-100000
 burnin <- 50000
 thin <- 10
-iters <- burnin:mcmc_samples
-iters <- iters[seq(1, mcmc_samples-burnin + thin, thin)]
+iters <- seq(burnin + 1, mcmc_samples, by = thin)
 
 sigma2_beta<-100.00^2
 a_sigma2<-3
 b_sigma2<-2
-sigma2_delta<-100.00^2
+sigma2_delta<-1.00^2
 a_tau2<-3
 b_tau2<-2
 shape_tau2_update<-sum(N)/2.00 +
@@ -131,10 +130,10 @@ l[[1]] <- laml0[[1]]*etal[[1]]^laml1[[1]]
 #Metropolis Settings
 ####################
 metrop_sd_h <- rep(0.1, sum(N))
-acctot_h <- matrix(1, nrow=mcmc_samples, ncol=sum(N))
+acctot_h <- matrix(0, nrow=mcmc_samples, ncol=sum(N))
 
 metrop_sd_l <- rep(0.1, sum(N))
-acctot_l <- matrix(1, nrow=mcmc_samples, ncol=sum(N))
+acctot_l <- matrix(0, nrow=mcmc_samples, ncol=sum(N))
 
 W <- cbind(1, S_long, T_long, Z_long, h[[1]], l[[1]], 
            S_long*h[[1]], S_long*l[[1]],
@@ -224,9 +223,9 @@ for(s in 2:mcmc_samples){
   pl1p <- (1-(lamh0[[s]]==1 & lamh1[[s]]==0))*(pl1[[s]]^(1-(Z_long==0 & D_long==1)))
   W0_temp <- cbind(1, S_long, T_long, Z_long,
                    lamh0[[s]]*etah[[s-1]]^lamh1[[s]], laml0[[s]],
-                   S_long*lamh0[[s]]*etah[[s-1]]^lamh1[[s]], laml0[[s]],
-                   T_long*lamh0[[s]]*etah[[s-1]]^lamh1[[s]], laml0[[s]],
-                   Z_long*lamh0[[s]]*etah[[s-1]]^lamh1[[s]], laml0[[s]])
+                   S_long*lamh0[[s]]*etah[[s-1]]^lamh1[[s]], S_long*laml0[[s]],
+                   T_long*lamh0[[s]]*etah[[s-1]]^lamh1[[s]], T_long*laml0[[s]],
+                   Z_long*lamh0[[s]]*etah[[s-1]]^lamh1[[s]], Z_long*laml0[[s]])
   W1_temp <- cbind(1, S_long, T_long, Z_long,
                    lamh0[[s]]*etah[[s-1]]^lamh1[[s]], laml0[[s]]*etal[[s-1]],
                    S_long*lamh0[[s]]*etah[[s-1]]^lamh1[[s]], S_long*laml0[[s]]*etal[[s-1]],
@@ -249,6 +248,10 @@ for(s in 2:mcmc_samples){
   logit_etah_old <- logit_etal_old <- rep(NA, sum(N))
   etah_old <- etal_old <- rep(NA, sum(N))
   h_old <- l_old <- rep(NA, sum(N))
+  etah[[s]] <- etah[[s-1]]
+  etal[[s]] <- etal[[s-1]]
+  h[[s]]    <- h[[s-1]]
+  l[[s]]    <- l[[s-1]]
 
   ## Never-takers
   sub <- which(Z_long == 1 & D_long == 0)
@@ -260,7 +263,7 @@ for(s in 2:mcmc_samples){
       ## eta_h
       logit_etah_old[block] <- logit_etah[block]
       logit_etah[block] <- rnorm(length(block), logit_etah_old[block], metrop_sd_h[block])
-      logit_etah[logit_etah > 709.7827] <- 709.7827
+      #logit_etah[logit_etah > 709.7827] <- 709.7827
 
       etah_old[block] <- etah[[s-1]][block]
       etah[[s]][block] <- (T_long[block] + exp(logit_etah[block]))/(1.00 + exp(logit_etah[block]))
@@ -290,8 +293,8 @@ for(s in 2:mcmc_samples){
         etah[[s]][block] <- etah_old[block]
         h[[s]][block] <- h_old[block]
         W[block,] <- W_old[block,]
-        acctot_h[s, block] <- 0
       }
+        acctot_h[s, block] <- as.numeric(ratio >= uni_draw)
     }
 
     for (start_idx in seq(1, length(sub), by = block_size)) {
@@ -299,7 +302,7 @@ for(s in 2:mcmc_samples){
 
       ##eta_l
       logit_etal_old[block] <- logit_etal[block]
-      logit_etal[block] <- rnorm(length(block), logit_etal_old[block], metrop_sd_l)
+      logit_etal[block] <- rnorm(length(block), logit_etal_old[block], metrop_sd_l[block])
       logit_etal[logit_etal > 709.7827] <- 709.7827
 
       etal_old[block] <- etal[[s-1]][block]
@@ -330,8 +333,8 @@ for(s in 2:mcmc_samples){
         etal[[s]][block] <- etal_old[block]
         l[[s]][block] <- l_old[block]
         W[block,] <- W_old[block,]
-        acctot_l[s, block] <- 0
       }
+      acctot_l[s, block] <- as.numeric(ratio >= uni_draw)
     }
   }
 
@@ -375,8 +378,8 @@ for(s in 2:mcmc_samples){
         etah[[s]][block] <- etah_old[block]
         h[[s]][block] <- h_old[block]
         W[block,] <- W_old[block,]
-        acctot_h[s, block] <- 0
       }
+      acctot_h[s, block] <- as.numeric(ratio >= uni_draw)
     }
 
     for (start_idx in seq(1, length(sub), by = block_size)) {
@@ -384,7 +387,7 @@ for(s in 2:mcmc_samples){
 
       ##eta_l
       logit_etal_old[block] <- logit_etal[block]
-      logit_etal[block] <- rnorm(length(block), logit_etal_old[block], metrop_sd_l)
+      logit_etal[block] <- rnorm(length(block), logit_etal_old[block], metrop_sd_l[block])
       logit_etal[logit_etal > 709.7827] <- 709.7827
 
       etal_old[block] <- etal[[s-1]][block]
@@ -415,8 +418,8 @@ for(s in 2:mcmc_samples){
         etal[[s]][block] <- etal_old[block]
         l[[s]][block] <- l_old[block]
         W[block,] <- W_old[block,]
-        acctot_l[s, block] <- 0
       }
+      acctot_l[s, block] <- as.numeric(ratio >= uni_draw)
     }
   }
 
@@ -462,8 +465,8 @@ for(s in 2:mcmc_samples){
         etah[[s]][block] <- etah_old[block]
         h[[s]][block] <- h_old[block]
         W[block,] <- W_old[block,]
-        acctot_h[s, block] <- 0
       }
+      acctot_h[s, block] <- as.numeric(ratio >= uni_draw)
     }
 
     for (start_idx in seq(1, length(sub), by = block_size)) {
@@ -471,11 +474,11 @@ for(s in 2:mcmc_samples){
 
       ##eta_l
       logit_etal_old[block] <- logit_etal[block]
-      logit_etal[block] <- rnorm(length(block), logit_etal_old[block], metrop_sd_l)
+      logit_etal[block] <- rnorm(length(block), logit_etal_old[block], metrop_sd_l[block])
       logit_etal[logit_etal > 709.7827] <- 709.7827
 
       etal_old[block] <- etal[[s-1]][block]
-      etal[[s]][block] <- (max(T_long[block], etah[[s]][block]) + exp(logit_etal[block]))/(1.00 + exp(logit_etal[block]))
+      etal[[s]][block] <- (pmax(T_long[block], etah[[s]][block]) + exp(logit_etal[block]))/(1.00 + exp(logit_etal[block]))
 
       l_old[block] <- l[[s-1]][block]
       l[[s]][block] <- laml0[[s]][block]*etal[[s]][block]^laml1[[s]][block]
@@ -502,8 +505,8 @@ for(s in 2:mcmc_samples){
         etal[[s]][block] <- etal_old[block]
         l[[s]][block] <- l_old[block]
         W[block,] <- W_old[block,]
-        acctot_l[s, block] <- 0
       }
+      acctot_l[s, block] <- as.numeric(ratio >= uni_draw)
     }
   }
   
@@ -548,8 +551,8 @@ for(s in 2:mcmc_samples){
         etah[[s]][block] <- etah_old[block]
         h[[s]][block] <- h_old[block]
         W[block,] <- W_old[block,]
-        acctot_h[s, block] <- 0
       }
+      acctot_h[s, block] <- as.numeric(ratio >= uni_draw)
     }
     
     for (start_idx in seq(1, length(sub), by = block_size)) {
@@ -557,7 +560,7 @@ for(s in 2:mcmc_samples){
       
       ##eta_l
       logit_etal_old[block] <- logit_etal[block]
-      logit_etal[block] <- rnorm(length(block), logit_etal_old[block], metrop_sd_l)
+      logit_etal[block] <- rnorm(length(block), logit_etal_old[block], metrop_sd_l[block])
       logit_etal[logit_etal > 709.7827] <- 709.7827
       
       etal_old[block] <- etal[[s-1]][block]
@@ -588,8 +591,8 @@ for(s in 2:mcmc_samples){
         etal[[s]][block] <- etal_old[block]
         l[[s]][block] <- l_old[block]
         W[block,] <- W_old[block,]
-        acctot_l[s, block] <- 0
       }
+      acctot_l[s, block] <- as.numeric(ratio >= uni_draw)
     }
   }
   # logit_etah <- logit_h_true
@@ -617,7 +620,7 @@ for(s in 2:mcmc_samples){
   #######
   rate <- crossprod(logit_etah - q_long%*%delta_h[[s]])/2.00 + b_tau2
   tau2_h[[s]] <- 1/rgamma(n = 1, shape = shape_tau2_update, rate = rate)
-  # tau2_h[[s]] <- tau2_h_true
+  tau2_h[[s]] <- 1
   
   ########
   #delta_l
@@ -633,7 +636,7 @@ for(s in 2:mcmc_samples){
   #######
   rate <- crossprod(logit_etal - q_long%*%delta_l[[s]])/2.00 + b_tau2
   tau2_l[[s]] <- 1/rgamma(n = 1, shape = shape_tau2_update, rate = rate)
-  # tau2_l[[s]] <- tau2_l_true
+  tau2_l[[s]] <- 1
   
   ##########
   #Estimands
@@ -645,7 +648,7 @@ for(s in 2:mcmc_samples){
     eff.sp <- 0.8
     
     effects <- CADE.CASE(eff.a, eff.s, eff.sp, h[[s]], l[[s]],
-                         beta[[s]], sigma2[[s]], W)
+                         beta[[s]], W)
     CADE[which(iters==s)] <- effects[[1]]
     CASE[which(iters==s)] <- effects[[2]]
   }
@@ -653,11 +656,11 @@ for(s in 2:mcmc_samples){
     acch <- colMeans(acctot_h[(s-100):s,])
     accl <- colMeans(acctot_l[(s-100):s,])
     
-    metrop_sd_h[acch < 0.15] <- metrop_sd_h[acch < 0.15]*0.9
-    metrop_sd_h[acch > 0.60] <- metrop_sd_h[acch > 0.60]*1.1
+    metrop_sd_h[acch < 0.25] <- metrop_sd_h[acch < 0.25]*0.9
+    metrop_sd_h[acch > 0.35] <- metrop_sd_h[acch > 0.35]*1.1
 
-    metrop_sd_l[accl < 0.15] <- metrop_sd_l[accl < 0.15]*0.9
-    metrop_sd_l[accl > 0.60] <- metrop_sd_l[accl > 0.60]*1.1
+    metrop_sd_l[accl < 0.25] <- metrop_sd_l[accl < 0.25]*0.9
+    metrop_sd_l[accl > 0.35] <- metrop_sd_l[accl > 0.35]*1.1
   }
 }
 print("saving")
